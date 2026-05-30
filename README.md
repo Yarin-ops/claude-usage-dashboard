@@ -4,7 +4,7 @@ A **local, no-API, no-account** dashboard for your [Claude Code](https://claude.
 
 Single HTML file. One Python script. Opens with double-click. Works offline.
 
-<!-- Screenshots: coming after first public release. -->
+![Hero — 5-hour block, activity heatmap, and Pay vs Use cards](screenshots/01-hero.png)
 
 ## Why another one?
 
@@ -35,6 +35,10 @@ Everything else flows from that framing.
 - **Pure static** — one HTML file, no build step, no npm
 
 > **Token accounting:** "effective tokens" = `input + output + cache_write`. Cheap cache reads are excluded because they don't count toward rate limits.
+
+![Reality-check banner, KPIs, and the tool usage breakdown](screenshots/02-tools.png)
+
+![Daily activity with WoW delta, top projects, model mix, monthly trend, and recent sessions](screenshots/03-trends.png)
 
 ## Try it without your own data
 
