@@ -1,0 +1,32 @@
+name: lint
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '**.py'
+      - '.github/workflows/python-lint.yml'
+  pull_request:
+    paths:
+      - '**.py'
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install flake8
+        run: pip install flake8
+      - name: Lint analyzer.py and examples
+        run: |
+          flake8 analyzer.py examples/ --max-line-length=120 \
+                 --select=E9,F63,F7,F82 --show-source --statistics
+      - name: Smoke-test demo data generator
+        run: |
+          python3 examples/generate_demo_data.py
+          python3 -c "import json; d = json.load(open('examples/demo-data.json')); \
+                       assert 'totals' in d and 'by_day' in d and 'current_block' in d; \
+                       print(f'OK — {len(d[\"by_day\"])} days, {d[\"totals\"][\"messages\"]} messages')"

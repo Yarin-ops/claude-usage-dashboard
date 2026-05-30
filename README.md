@@ -36,6 +36,17 @@ Everything else flows from that framing.
 
 > **Token accounting:** "effective tokens" = `input + output + cache_write`. Cheap cache reads are excluded because they don't count toward rate limits.
 
+## Try it without your own data
+
+Want to see the dashboard before running anything against your `~/.claude`?
+
+```bash
+cp examples/demo-data.json claude-usage-data.json
+open index.html
+```
+
+You'll see ~70 days of synthetic activity across five example projects. See `examples/README.md` for details.
+
 ## Quick start
 
 You need Python 3 (any version since 3.8). That's it.
@@ -120,9 +131,35 @@ Where this one diverges:
 
 Pick the one that fits how you like to run things.
 
+## Project layout
+
+```
+.
+├── index.html                  Single-file dashboard (HTML + CSS + JS inline)
+├── analyzer.py                 Reads ~/.claude logs → writes claude-usage-data.json
+├── examples/                   Synthetic demo data + the generator that builds it
+├── docs/                       Pricing math, architecture, comparison with iftahs
+├── screenshots/                README screenshots (light, dark, hebrew, heatmap)
+├── .github/
+│   ├── ISSUE_TEMPLATE/         Bug + feature request forms
+│   └── workflows/              CI (Python lint + demo-data smoke test)
+├── CHANGELOG.md
+├── CONTRIBUTING.md
+├── LICENSE                     MIT
+└── README.md                   This file
+```
+
+## Further reading
+
+- [Pricing & cost math](docs/pricing.md) — exactly how each message becomes a dollar number.
+- [Architecture](docs/architecture.md) — the three pieces, the data contract, why no server.
+- [Comparison with iftahs/claude-dashboard](docs/comparison-with-iftahs.md) — fair side-by-side, pick the one that fits.
+- [Contributing](CONTRIBUTING.md) — what's in scope and what isn't.
+- [Changelog](CHANGELOG.md) — what's changed across releases.
+
 ## Contributing
 
-Open an [issue](https://github.com/Yarin-ops/claude-usage-dashboard/issues) for bugs or feature ideas. PRs welcome.
+Open an [issue](https://github.com/Yarin-ops/claude-usage-dashboard/issues) for bugs or feature ideas. See [CONTRIBUTING.md](CONTRIBUTING.md) for scope rules. PRs welcome.
 
 ## License
 

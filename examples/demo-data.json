@@ -1,0 +1,1267 @@
+{
+  "generated_at": "2026-05-15T14:30:00+00:00",
+  "totals": {
+    "input_tokens": 1064983,
+    "output_tokens": 2137517,
+    "cache_read": 55864657,
+    "cache_write_5m": 8143828,
+    "cache_write_1h": 0,
+    "cost": 95.6154,
+    "cost_input": 3.1949,
+    "cost_output": 32.0628,
+    "cost_cache": 60.3577,
+    "savings_vs_no_cache": 150.8346,
+    "messages": 6151
+  },
+  "pricing": {
+    "opus": {
+      "input": 5.0,
+      "output": 25.0
+    },
+    "sonnet": {
+      "input": 3.0,
+      "output": 15.0
+    },
+    "haiku": {
+      "input": 1.0,
+      "output": 5.0
+    },
+    "unknown": {
+      "input": 3.0,
+      "output": 15.0
+    }
+  },
+  "by_day": [
+    {
+      "date": "2026-03-07",
+      "active_minutes": 0.0,
+      "cost": 0.0,
+      "input": 0,
+      "output": 0,
+      "cache_read": 0,
+      "cache_write": 0,
+      "messages": 0,
+      "effective_tokens": 0,
+      "by_model": {}
+    },
+    {
+      "date": "2026-03-08",
+      "active_minutes": 1.3,
+      "cost": 2.3304,
+      "input": 10350,
+      "output": 20880,
+      "cache_read": 1357830,
+      "cache_write": 172440,
+      "messages": 90,
+      "effective_tokens": 203670,
+      "by_model": {
+        "opus": 203670
+      }
+    },
+    {
+      "date": "2026-03-09",
+      "active_minutes": 12.3,
+      "cost": 3.6055,
+      "input": 49951,
+      "output": 116632,
+      "cache_read": 1059726,
+      "cache_write": 370211,
+      "messages": 239,
+      "effective_tokens": 536794,
+      "by_model": {
+        "sonnet": 536794
+      }
+    },
+    {
+      "date": "2026-03-10",
+      "active_minutes": 2.8,
+      "cost": 1.2019,
+      "input": 11476,
+      "output": 13908,
+      "cache_read": 1248832,
+      "cache_write": 155800,
+      "messages": 76,
+      "effective_tokens": 181184,
+      "by_model": {
+        "sonnet": 181184
+      }
+    },
+    {
+      "date": "2026-03-11",
+      "active_minutes": 4.9,
+      "cost": 0.7538,
+      "input": 12450,
+      "output": 17400,
+      "cache_read": 413925,
+      "cache_write": 88350,
+      "messages": 75,
+      "effective_tokens": 118200,
+      "by_model": {
+        "sonnet": 118200
+      }
+    },
+    {
+      "date": "2026-03-12",
+      "active_minutes": 2.0,
+      "cost": 0.2933,
+      "input": 6727,
+      "output": 7533,
+      "cache_read": 316231,
+      "cache_write": 17391,
+      "messages": 31,
+      "effective_tokens": 31651,
+      "by_model": {
+        "sonnet": 31651
+      }
+    },
+    {
+      "date": "2026-03-13",
+      "active_minutes": 8.3,
+      "cost": 2.0596,
+      "input": 10864,
+      "output": 22736,
+      "cache_read": 1661408,
+      "cache_write": 96992,
+      "messages": 112,
+      "effective_tokens": 130592,
+      "by_model": {
+        "opus": 130592
+      }
+    },
+    {
+      "date": "2026-03-14",
+      "active_minutes": 0.0,
+      "cost": 0.0,
+      "input": 0,
+      "output": 0,
+      "cache_read": 0,
+      "cache_write": 0,
+      "messages": 0,
+      "effective_tokens": 0,
+      "by_model": {}
+    },
+    {
+      "date": "2026-03-15",
+      "active_minutes": 0.0,
+      "cost": 0.0,
+      "input": 0,
+      "output": 0,
+      "cache_read": 0,
+      "cache_write": 0,
+      "messages": 0,
+      "effective_tokens": 0,
+      "by_model": {}
+    },
+    {
+      "date": "2026-03-16",
+      "active_minutes": 3.6,
+      "cost": 1.5925,
+      "input": 23528,
+      "output": 35768,
+      "cache_read": 1368840,
+      "cache_write": 153272,
+      "messages": 136,
+      "effective_tokens": 212568,
+      "by_model": {
+        "sonnet": 212568
+      }
+    },
+    {
+      "date": "2026-03-17",
+      "active_minutes": 0.0,
+      "cost": 0.0,
+      "input": 0,
+      "output": 0,
+      "cache_read": 0,
+      "cache_write": 0,
+      "messages": 0,
+      "effective_tokens": 0,
+      "by_model": {}
+    },
+    {
+      "date": "2026-03-18",
+      "active_minutes": 13.0,
+      "cost": 2.1479,
+      "input": 37800,
+      "output": 53375,
+      "cache_read": 1168475,
+      "cache_write": 235550,
+      "messages": 175,
+      "effective_tokens": 326725,
+      "by_model": {
+        "sonnet": 326725
+      }
+    },
+    {
+      "date": "2026-03-19",
+      "active_minutes": 4.8,
+      "cost": 2.2268,
+      "input": 26406,
+      "output": 33696,
+      "cache_read": 1255824,
+      "cache_write": 337446,
+      "messages": 162,
+      "effective_tokens": 397548,
+      "by_model": {
+        "sonnet": 397548
+      }
+    },
+    {
+      "date": "2026-03-20",
+      "active_minutes": 5.0,
+      "cost": 1.078,
+      "input": 16650,
+      "output": 25234,
+      "cache_read": 553742,
+      "cache_write": 128908,
+      "messages": 74,
+      "effective_tokens": 170792,
+      "by_model": {
+        "sonnet": 170792
+      }
+    },
+    {
+      "date": "2026-03-21",
+      "active_minutes": 0.0,
+      "cost": 0.0,
+      "input": 0,
+      "output": 0,
+      "cache_read": 0,
+      "cache_write": 0,
+      "messages": 0,
+      "effective_tokens": 0,
+      "by_model": {}
+    },
+    {
+      "date": "2026-03-22",
+      "active_minutes": 3.8,
+      "cost": 0.947,
+      "input": 12265,
+      "output": 25025,
+      "cache_read": 456720,
+      "cache_write": 106095,
+      "messages": 55,
+      "effective_tokens": 143385,
+      "by_model": {
+        "sonnet": 143385
+      }
+    },
+    {
+      "date": "2026-03-23",
+      "active_minutes": 5.0,
+      "cost": 1.6173,
+      "input": 8740,
+      "output": 33440,
+      "cache_read": 918460,
+      "cache_write": 44536,
+      "messages": 76,
+      "effective_tokens": 86716,
+      "by_model": {
+        "opus": 86716
+      }
+    },
+    {
+      "date": "2026-03-24",
+      "active_minutes": 4.5,
+      "cost": 0.8284,
+      "input": 11280,
+      "output": 29100,
+      "cache_read": 302400,
+      "cache_write": 71280,
+      "messages": 60,
+      "effective_tokens": 111660,
+      "by_model": {
+        "sonnet": 111660
+      }
+    },
+    {
+      "date": "2026-03-25",
+      "active_minutes": 4.2,
+      "cost": 2.6825,
+      "input": 13202,
+      "output": 38318,
+      "cache_read": 2442209,
+      "cache_write": 356132,
+      "messages": 161,
+      "effective_tokens": 407652,
+      "by_model": {
+        "sonnet": 407652
+      }
+    },
+    {
+      "date": "2026-03-26",
+      "active_minutes": 2.7,
+      "cost": 1.3264,
+      "input": 5760,
+      "output": 19776,
+      "cache_read": 194544,
+      "cache_write": 112944,
+      "messages": 48,
+      "effective_tokens": 138480,
+      "by_model": {
+        "opus": 138480
+      }
+    },
+    {
+      "date": "2026-03-27",
+      "active_minutes": 0.0,
+      "cost": 0.0,
+      "input": 0,
+      "output": 0,
+      "cache_read": 0,
+      "cache_write": 0,
+      "messages": 0,
+      "effective_tokens": 0,
+      "by_model": {}
+    },
+    {
+      "date": "2026-03-28",
+      "active_minutes": 0.0,
+      "cost": 0.0,
+      "input": 0,
+      "output": 0,
+      "cache_read": 0,
+      "cache_write": 0,
+      "messages": 0,
+      "effective_tokens": 0,
+      "by_model": {}
+    },
+    {
+      "date": "2026-03-29",
+      "active_minutes": 0.0,
+      "cost": 0.0,
+      "input": 0,
+      "output": 0,
+      "cache_read": 0,
+      "cache_write": 0,
+      "messages": 0,
+      "effective_tokens": 0,
+      "by_model": {}
+    },
+    {
+      "date": "2026-03-30",
+      "active_minutes": 3.4,
+      "cost": 2.3118,
+      "input": 37620,
+      "output": 88380,
+      "cache_read": 1306440,
+      "cache_write": 128340,
+      "messages": 180,
+      "effective_tokens": 254340,
+      "by_model": {
+        "sonnet": 254340
+      }
+    },
+    {
+      "date": "2026-03-31",
+      "active_minutes": 0.0,
+      "cost": 0.0,
+      "input": 0,
+      "output": 0,
+      "cache_read": 0,
+      "cache_write": 0,
+      "messages": 0,
+      "effective_tokens": 0,
+      "by_model": {}
+    },
+    {
+      "date": "2026-04-01",
+      "active_minutes": 0.0,
+      "cost": 0.0,
+      "input": 0,
+      "output": 0,
+      "cache_read": 0,
+      "cache_write": 0,
+      "messages": 0,
+      "effective_tokens": 0,
+      "by_model": {}
+    },
+    {
+      "date": "2026-04-02",
+      "active_minutes": 0.0,
+      "cost": 0.0,
+      "input": 0,
+      "output": 0,
+      "cache_read": 0,
+      "cache_write": 0,
+      "messages": 0,
+      "effective_tokens": 0,
+      "by_model": {}
+    },
+    {
+      "date": "2026-04-03",
+      "active_minutes": 19.2,
+      "cost": 4.1243,
+      "input": 71724,
+      "output": 140529,
+      "cache_read": 3303891,
+      "cache_write": 216006,
+      "messages": 417,
+      "effective_tokens": 428259,
+      "by_model": {
+        "sonnet": 428259
+      }
+    },
+    {
+      "date": "2026-04-04",
+      "active_minutes": 6.5,
+      "cost": 1.8295,
+      "input": 31104,
+      "output": 35136,
+      "cache_read": 878832,
+      "cache_write": 252144,
+      "messages": 144,
+      "effective_tokens": 318384,
+      "by_model": {
+        "sonnet": 318384
+      }
+    },
+    {
+      "date": "2026-04-05",
+      "active_minutes": 9.8,
+      "cost": 5.6165,
+      "input": 23450,
+      "output": 79800,
+      "cache_read": 2865450,
+      "cache_write": 331450,
+      "messages": 175,
+      "effective_tokens": 434700,
+      "by_model": {
+        "opus": 434700
+      }
+    },
+    {
+      "date": "2026-04-06",
+      "active_minutes": 3.6,
+      "cost": 1.3796,
+      "input": 24380,
+      "output": 47265,
+      "cache_read": 687930,
+      "cache_write": 104305,
+      "messages": 115,
+      "effective_tokens": 175950,
+      "by_model": {
+        "sonnet": 175950
+      }
+    },
+    {
+      "date": "2026-04-07",
+      "active_minutes": 1.0,
+      "cost": 1.1316,
+      "input": 6318,
+      "output": 16848,
+      "cache_read": 1216566,
+      "cache_write": 131976,
+      "messages": 78,
+      "effective_tokens": 155142,
+      "by_model": {
+        "sonnet": 155142
+      }
+    },
+    {
+      "date": "2026-04-08",
+      "active_minutes": 17.0,
+      "cost": 3.5438,
+      "input": 36240,
+      "output": 102720,
+      "cache_read": 1802400,
+      "cache_write": 360960,
+      "messages": 240,
+      "effective_tokens": 499920,
+      "by_model": {
+        "sonnet": 499920
+      }
+    },
+    {
+      "date": "2026-04-09",
+      "active_minutes": 5.2,
+      "cost": 1.5203,
+      "input": 28341,
+      "output": 54708,
+      "cache_read": 1003779,
+      "cache_write": 83613,
+      "messages": 141,
+      "effective_tokens": 166662,
+      "by_model": {
+        "sonnet": 166662
+      }
+    },
+    {
+      "date": "2026-04-10",
+      "active_minutes": 7.9,
+      "cost": 2.032,
+      "input": 12927,
+      "output": 71446,
+      "cache_read": 2027593,
+      "cache_write": 83539,
+      "messages": 139,
+      "effective_tokens": 167912,
+      "by_model": {
+        "sonnet": 167912
+      }
+    },
+    {
+      "date": "2026-04-11",
+      "active_minutes": 0.0,
+      "cost": 0.0,
+      "input": 0,
+      "output": 0,
+      "cache_read": 0,
+      "cache_write": 0,
+      "messages": 0,
+      "effective_tokens": 0,
+      "by_model": {}
+    },
+    {
+      "date": "2026-04-12",
+      "active_minutes": 1.7,
+      "cost": 0.7264,
+      "input": 13386,
+      "output": 17319,
+      "cache_read": 752928,
+      "cache_write": 53475,
+      "messages": 69,
+      "effective_tokens": 84180,
+      "by_model": {
+        "sonnet": 84180
+      }
+    },
+    {
+      "date": "2026-04-13",
+      "active_minutes": 0.0,
+      "cost": 0.0,
+      "input": 0,
+      "output": 0,
+      "cache_read": 0,
+      "cache_write": 0,
+      "messages": 0,
+      "effective_tokens": 0,
+      "by_model": {}
+    },
+    {
+      "date": "2026-04-14",
+      "active_minutes": 8.3,
+      "cost": 7.9183,
+      "input": 75428,
+      "output": 64702,
+      "cache_read": 1912688,
+      "cache_write": 794762,
+      "messages": 346,
+      "effective_tokens": 934892,
+      "by_model": {
+        "opus": 934892
+      }
+    },
+    {
+      "date": "2026-04-15",
+      "active_minutes": 4.9,
+      "cost": 1.4465,
+      "input": 26026,
+      "output": 30030,
+      "cache_read": 957671,
+      "cache_write": 168168,
+      "messages": 143,
+      "effective_tokens": 224224,
+      "by_model": {
+        "sonnet": 224224
+      }
+    },
+    {
+      "date": "2026-04-16",
+      "active_minutes": 0.0,
+      "cost": 0.0,
+      "input": 0,
+      "output": 0,
+      "cache_read": 0,
+      "cache_write": 0,
+      "messages": 0,
+      "effective_tokens": 0,
+      "by_model": {}
+    },
+    {
+      "date": "2026-04-17",
+      "active_minutes": 2.6,
+      "cost": 1.7114,
+      "input": 20646,
+      "output": 48174,
+      "cache_read": 1466610,
+      "cache_write": 129828,
+      "messages": 93,
+      "effective_tokens": 198648,
+      "by_model": {
+        "sonnet": 198648
+      }
+    },
+    {
+      "date": "2026-04-18",
+      "active_minutes": 0.0,
+      "cost": 0.0,
+      "input": 0,
+      "output": 0,
+      "cache_read": 0,
+      "cache_write": 0,
+      "messages": 0,
+      "effective_tokens": 0,
+      "by_model": {}
+    },
+    {
+      "date": "2026-04-19",
+      "active_minutes": 0.0,
+      "cost": 0.0,
+      "input": 0,
+      "output": 0,
+      "cache_read": 0,
+      "cache_write": 0,
+      "messages": 0,
+      "effective_tokens": 0,
+      "by_model": {}
+    },
+    {
+      "date": "2026-04-20",
+      "active_minutes": 23.8,
+      "cost": 5.9642,
+      "input": 66458,
+      "output": 143773,
+      "cache_read": 5912130,
+      "cache_write": 489223,
+      "messages": 329,
+      "effective_tokens": 699454,
+      "by_model": {
+        "sonnet": 699454
+      }
+    },
+    {
+      "date": "2026-04-21",
+      "active_minutes": 4.9,
+      "cost": 5.4928,
+      "input": 27580,
+      "output": 76042,
+      "cache_read": 1174908,
+      "cache_write": 458616,
+      "messages": 197,
+      "effective_tokens": 562238,
+      "by_model": {
+        "opus": 562238
+      }
+    },
+    {
+      "date": "2026-04-22",
+      "active_minutes": 7.6,
+      "cost": 1.7885,
+      "input": 79692,
+      "output": 163212,
+      "cache_read": 4372620,
+      "cache_write": 364356,
+      "messages": 348,
+      "effective_tokens": 607260,
+      "by_model": {
+        "haiku": 607260
+      }
+    },
+    {
+      "date": "2026-04-23",
+      "active_minutes": 4.7,
+      "cost": 1.2696,
+      "input": 9153,
+      "output": 41310,
+      "cache_read": 722115,
+      "cache_write": 108216,
+      "messages": 81,
+      "effective_tokens": 158679,
+      "by_model": {
+        "sonnet": 158679
+      }
+    },
+    {
+      "date": "2026-04-24",
+      "active_minutes": 3.6,
+      "cost": 1.5516,
+      "input": 30688,
+      "output": 31647,
+      "cache_read": 712400,
+      "cache_write": 205637,
+      "messages": 137,
+      "effective_tokens": 267972,
+      "by_model": {
+        "sonnet": 267972
+      }
+    },
+    {
+      "date": "2026-04-25",
+      "active_minutes": 0.0,
+      "cost": 0.0,
+      "input": 0,
+      "output": 0,
+      "cache_read": 0,
+      "cache_write": 0,
+      "messages": 0,
+      "effective_tokens": 0,
+      "by_model": {}
+    },
+    {
+      "date": "2026-04-26",
+      "active_minutes": 0.0,
+      "cost": 0.0,
+      "input": 0,
+      "output": 0,
+      "cache_read": 0,
+      "cache_write": 0,
+      "messages": 0,
+      "effective_tokens": 0,
+      "by_model": {}
+    },
+    {
+      "date": "2026-04-27",
+      "active_minutes": 0.0,
+      "cost": 0.0,
+      "input": 0,
+      "output": 0,
+      "cache_read": 0,
+      "cache_write": 0,
+      "messages": 0,
+      "effective_tokens": 0,
+      "by_model": {}
+    },
+    {
+      "date": "2026-04-28",
+      "active_minutes": 0.5,
+      "cost": 1.7568,
+      "input": 13140,
+      "output": 20040,
+      "cache_read": 841260,
+      "cache_write": 123120,
+      "messages": 60,
+      "effective_tokens": 156300,
+      "by_model": {
+        "opus": 156300
+      }
+    },
+    {
+      "date": "2026-04-29",
+      "active_minutes": 5.6,
+      "cost": 1.4277,
+      "input": 10176,
+      "output": 23808,
+      "cache_read": 799968,
+      "cache_write": 61056,
+      "messages": 96,
+      "effective_tokens": 95040,
+      "by_model": {
+        "opus": 95040
+      }
+    },
+    {
+      "date": "2026-04-30",
+      "active_minutes": 3.9,
+      "cost": 2.4085,
+      "input": 15364,
+      "output": 26128,
+      "cache_read": 1404196,
+      "cache_write": 156216,
+      "messages": 92,
+      "effective_tokens": 197708,
+      "by_model": {
+        "opus": 197708
+      }
+    },
+    {
+      "date": "2026-05-01",
+      "active_minutes": 14.6,
+      "cost": 4.2042,
+      "input": 43200,
+      "output": 58176,
+      "cache_read": 1168704,
+      "cache_write": 311904,
+      "messages": 288,
+      "effective_tokens": 413280,
+      "by_model": {
+        "opus": 413280
+      }
+    },
+    {
+      "date": "2026-05-02",
+      "active_minutes": 8.9,
+      "cost": 1.4867,
+      "input": 25137,
+      "output": 62111,
+      "cache_read": 553014,
+      "cache_write": 83657,
+      "messages": 133,
+      "effective_tokens": 170905,
+      "by_model": {
+        "sonnet": 170905
+      }
+    },
+    {
+      "date": "2026-05-03",
+      "active_minutes": 0.0,
+      "cost": 0.0,
+      "input": 0,
+      "output": 0,
+      "cache_read": 0,
+      "cache_write": 0,
+      "messages": 0,
+      "effective_tokens": 0,
+      "by_model": {}
+    },
+    {
+      "date": "2026-05-04",
+      "active_minutes": 7.8,
+      "cost": 1.1396,
+      "input": 13338,
+      "output": 45600,
+      "cache_read": 694032,
+      "cache_write": 55290,
+      "messages": 114,
+      "effective_tokens": 114228,
+      "by_model": {
+        "sonnet": 114228
+      }
+    },
+    {
+      "date": "2026-05-05",
+      "active_minutes": 1.4,
+      "cost": 0.3531,
+      "input": 3990,
+      "output": 9210,
+      "cache_read": 447810,
+      "cache_write": 18300,
+      "messages": 30,
+      "effective_tokens": 31500,
+      "by_model": {
+        "sonnet": 31500
+      }
+    },
+    {
+      "date": "2026-05-06",
+      "active_minutes": 0.0,
+      "cost": 0.0,
+      "input": 0,
+      "output": 0,
+      "cache_read": 0,
+      "cache_write": 0,
+      "messages": 0,
+      "effective_tokens": 0,
+      "by_model": {}
+    },
+    {
+      "date": "2026-05-07",
+      "active_minutes": 0.0,
+      "cost": 0.0,
+      "input": 0,
+      "output": 0,
+      "cache_read": 0,
+      "cache_write": 0,
+      "messages": 0,
+      "effective_tokens": 0,
+      "by_model": {}
+    },
+    {
+      "date": "2026-05-08",
+      "active_minutes": 2.4,
+      "cost": 1.3917,
+      "input": 10000,
+      "output": 31280,
+      "cache_read": 352480,
+      "cache_write": 61360,
+      "messages": 80,
+      "effective_tokens": 102640,
+      "by_model": {
+        "opus": 102640
+      }
+    },
+    {
+      "date": "2026-05-09",
+      "active_minutes": 0.0,
+      "cost": 0.0,
+      "input": 0,
+      "output": 0,
+      "cache_read": 0,
+      "cache_write": 0,
+      "messages": 0,
+      "effective_tokens": 0,
+      "by_model": {}
+    },
+    {
+      "date": "2026-05-10",
+      "active_minutes": 0.0,
+      "cost": 0.0,
+      "input": 0,
+      "output": 0,
+      "cache_read": 0,
+      "cache_write": 0,
+      "messages": 0,
+      "effective_tokens": 0,
+      "by_model": {}
+    },
+    {
+      "date": "2026-05-11",
+      "active_minutes": 0.0,
+      "cost": 0.0,
+      "input": 0,
+      "output": 0,
+      "cache_read": 0,
+      "cache_write": 0,
+      "messages": 0,
+      "effective_tokens": 0,
+      "by_model": {}
+    },
+    {
+      "date": "2026-05-12",
+      "active_minutes": 1.9,
+      "cost": 1.3577,
+      "input": 9416,
+      "output": 33000,
+      "cache_read": 407792,
+      "cache_write": 189904,
+      "messages": 88,
+      "effective_tokens": 232320,
+      "by_model": {
+        "sonnet": 232320
+      }
+    },
+    {
+      "date": "2026-05-13",
+      "active_minutes": 0.0,
+      "cost": 0.0,
+      "input": 0,
+      "output": 0,
+      "cache_read": 0,
+      "cache_write": 0,
+      "messages": 0,
+      "effective_tokens": 0,
+      "by_model": {}
+    },
+    {
+      "date": "2026-05-14",
+      "active_minutes": 5.7,
+      "cost": 1.6377,
+      "input": 10062,
+      "output": 29952,
+      "cache_read": 731484,
+      "cache_write": 75660,
+      "messages": 78,
+      "effective_tokens": 115674,
+      "by_model": {
+        "opus": 115674
+      }
+    },
+    {
+      "date": "2026-05-15",
+      "active_minutes": 3.9,
+      "cost": 2.4017,
+      "input": 32550,
+      "output": 52350,
+      "cache_read": 667800,
+      "cache_write": 95400,
+      "messages": 150,
+      "effective_tokens": 180300,
+      "by_model": {
+        "opus": 180300
+      }
+    }
+  ],
+  "by_month": [
+    {
+      "month": "2026-03",
+      "cost": 27.0031,
+      "messages": 1750,
+      "input": 295069,
+      "output": 581201,
+      "cache_read": 16025606,
+      "cache_write": 2575687,
+      "active_days": 16,
+      "active_minutes": 81.6,
+      "active_hours": 1.4,
+      "messages_per_active_day": 109.4
+    },
+    {
+      "month": "2026-04",
+      "cost": 54.6399,
+      "messages": 3440,
+      "input": 622221,
+      "output": 1234637,
+      "cache_read": 34815935,
+      "cache_write": 4676666,
+      "active_days": 20,
+      "active_minutes": 142.3,
+      "active_hours": 2.4,
+      "messages_per_active_day": 172.0
+    },
+    {
+      "month": "2026-05",
+      "cost": 13.9724,
+      "messages": 961,
+      "input": 147693,
+      "output": 321679,
+      "cache_read": 5023116,
+      "cache_write": 891475,
+      "active_days": 8,
+      "active_minutes": 46.6,
+      "active_hours": 0.8,
+      "messages_per_active_day": 120.1
+    }
+  ],
+  "by_model": [
+    {
+      "model": "sonnet",
+      "cost": 52.2373,
+      "messages": 3915,
+      "input": 688627,
+      "output": 1415195,
+      "cache_read": 35440857,
+      "cache_write": 4883016
+    },
+    {
+      "model": "opus",
+      "cost": 41.5896,
+      "messages": 1888,
+      "input": 296664,
+      "output": 559110,
+      "cache_read": 16051180,
+      "cache_write": 2896456
+    },
+    {
+      "model": "haiku",
+      "cost": 1.7885,
+      "messages": 348,
+      "input": 79692,
+      "output": 163212,
+      "cache_read": 4372620,
+      "cache_write": 364356
+    }
+  ],
+  "by_project": [
+    {
+      "folder": "my-blog",
+      "label": "my-blog",
+      "cost": 32.5092,
+      "messages": 2091,
+      "input": 362094,
+      "output": 726755,
+      "cache_read": 18993983,
+      "cache_write": 2768901,
+      "sessions": 23
+    },
+    {
+      "folder": "ml-experiments",
+      "label": "ml-experiments",
+      "cost": 21.0354,
+      "messages": 1353,
+      "input": 234296,
+      "output": 470253,
+      "cache_read": 12290224,
+      "cache_write": 1791642,
+      "sessions": 10
+    },
+    {
+      "folder": "side-project",
+      "label": "side-project",
+      "cost": 17.2108,
+      "messages": 1107,
+      "input": 191696,
+      "output": 384753,
+      "cache_read": 10055638,
+      "cache_write": 1465889,
+      "sessions": 10
+    },
+    {
+      "folder": "client-dashboard",
+      "label": "client-dashboard",
+      "cost": 13.3862,
+      "messages": 861,
+      "input": 149097,
+      "output": 299252,
+      "cache_read": 7821051,
+      "cache_write": 1140135,
+      "sessions": 16
+    },
+    {
+      "folder": "playground",
+      "label": "playground",
+      "cost": 7.6492,
+      "messages": 492,
+      "input": 85198,
+      "output": 171001,
+      "cache_read": 4469172,
+      "cache_write": 651506,
+      "sessions": 8
+    },
+    {
+      "folder": "(root)",
+      "label": "(root)",
+      "cost": 3.8246,
+      "messages": 246,
+      "input": 42599,
+      "output": 85500,
+      "cache_read": 2234586,
+      "cache_write": 325753,
+      "sessions": 5
+    }
+  ],
+  "by_tool": [
+    {
+      "name": "Bash",
+      "count": 2501
+    },
+    {
+      "name": "Edit",
+      "count": 1172
+    },
+    {
+      "name": "Read",
+      "count": 842
+    },
+    {
+      "name": "Write",
+      "count": 478
+    },
+    {
+      "name": "TodoWrite",
+      "count": 265
+    },
+    {
+      "name": "Grep",
+      "count": 178
+    },
+    {
+      "name": "Glob",
+      "count": 87
+    },
+    {
+      "name": "WebFetch",
+      "count": 69
+    },
+    {
+      "name": "NotebookEdit",
+      "count": 27
+    },
+    {
+      "name": "Task",
+      "count": 25
+    }
+  ],
+  "recent_sessions": [
+    {
+      "sessionId": "demo-0006-6085",
+      "project": "ml-experiments",
+      "first": "2026-05-14T05:59:00+00:00",
+      "last": "2026-05-14T07:30:00+00:00",
+      "cost": 3.6392,
+      "messages": 23,
+      "model": "sonnet"
+    },
+    {
+      "sessionId": "demo-0003-7653",
+      "project": "playground",
+      "first": "2026-05-12T19:47:00+00:00",
+      "last": "2026-05-12T20:30:00+00:00",
+      "cost": 3.7601,
+      "messages": 43,
+      "model": "sonnet"
+    },
+    {
+      "sessionId": "demo-0007-2193",
+      "project": "client-dashboard",
+      "first": "2026-05-11T22:07:00+00:00",
+      "last": "2026-05-11T23:30:00+00:00",
+      "cost": 1.8943,
+      "messages": 85,
+      "model": "sonnet"
+    },
+    {
+      "sessionId": "demo-0004-6279",
+      "project": "client-dashboard",
+      "first": "2026-05-08T19:08:00+00:00",
+      "last": "2026-05-08T20:30:00+00:00",
+      "cost": 2.0159,
+      "messages": 91,
+      "model": "sonnet"
+    },
+    {
+      "sessionId": "demo-0005-2389",
+      "project": "side-project",
+      "first": "2026-05-08T08:01:00+00:00",
+      "last": "2026-05-08T09:30:00+00:00",
+      "cost": 2.3438,
+      "messages": 86,
+      "model": "opus"
+    },
+    {
+      "sessionId": "demo-0000-8066",
+      "project": "my-blog",
+      "first": "2026-05-07T07:39:00+00:00",
+      "last": "2026-05-07T08:30:00+00:00",
+      "cost": 4.2725,
+      "messages": 47,
+      "model": "opus"
+    },
+    {
+      "sessionId": "demo-0001-5920",
+      "project": "playground",
+      "first": "2026-05-05T09:53:00+00:00",
+      "last": "2026-05-05T11:30:00+00:00",
+      "cost": 1.4263,
+      "messages": 57,
+      "model": "sonnet"
+    },
+    {
+      "sessionId": "demo-0002-3085",
+      "project": "ml-experiments",
+      "first": "2026-05-04T04:15:00+00:00",
+      "last": "2026-05-04T05:30:00+00:00",
+      "cost": 1.921,
+      "messages": 53,
+      "model": "opus"
+    },
+    {
+      "sessionId": "demo-0008-7547",
+      "project": "ml-experiments",
+      "first": "2026-05-04T01:22:00+00:00",
+      "last": "2026-05-04T02:30:00+00:00",
+      "cost": 0.7067,
+      "messages": 93,
+      "model": "sonnet"
+    },
+    {
+      "sessionId": "demo-0009-7965",
+      "project": "ml-experiments",
+      "first": "2026-05-03T09:46:00+00:00",
+      "last": "2026-05-03T11:30:00+00:00",
+      "cost": 0.8327,
+      "messages": 94,
+      "model": "sonnet"
+    }
+  ],
+  "current_block": {
+    "now": "2026-05-15T14:30:00+00:00",
+    "window_hours": 5,
+    "started_at": "2026-05-15T11:18:00+00:00",
+    "effective_tokens": 1847500,
+    "cost": 6.42,
+    "messages": 53,
+    "tools": [
+      {
+        "name": "Bash",
+        "count": 11
+      },
+      {
+        "name": "Edit",
+        "count": 8
+      },
+      {
+        "name": "Read",
+        "count": 7
+      },
+      {
+        "name": "Write",
+        "count": 3
+      },
+      {
+        "name": "Grep",
+        "count": 2
+      }
+    ]
+  },
+  "files_scanned": 87
+}
