@@ -1,0 +1,1581 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Claude Usage Dashboard</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'><stop offset='0%25' stop-color='%23f472b6'/><stop offset='100%25' stop-color='%238b5cf6'/></linearGradient></defs><circle cx='50' cy='50' r='45' fill='url(%23g)'/><text x='50' y='62' text-anchor='middle' font-size='42' fill='white'>$</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="claude-usage-data.js" onerror="window.__CLAUDE_DATA_LOAD_ERR=true"></script>
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #f8f7fc;
+  --card-bg: #ffffff;
+  --card-border: #ede5f5;
+  --text: #1a1a2e;
+  --text-secondary: #6b7280;
+  --text-muted: #9ca3af;
+  --accent: #8b5cf6;
+  --accent-pink: #ec4899;
+  --accent-light: #f3e8ff;
+  --gradient-nav: linear-gradient(135deg, #0f0a1e 0%, #1e1145 50%, #2d1b69 100%);
+  --good: #10b981;
+  --warn: #f59e0b;
+  --bad:  #ef4444;
+  --opus:   #8b5cf6;
+  --sonnet: #ec4899;
+  --haiku:  #14b8a6;
+  --grid: rgba(139,92,246,0.08);
+}
+[data-theme="dark"] {
+  --bg: #0a0613;
+  --card-bg: #161029;
+  --card-border: #2a1f4a;
+  --text: #f0eaff;
+  --text-secondary: #b5a8d0;
+  --text-muted: #6b6188;
+  --accent-light: #2a1f4a;
+  --grid: rgba(139,92,246,0.15);
+}
+body {
+  font-family: 'Heebo', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+}
+body::before {
+  content: ''; position: fixed; inset: 0;
+  background:
+    radial-gradient(ellipse 60% 40% at 20% 10%, rgba(139,92,246,0.06) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 60% at 85% 80%, rgba(236,72,153,0.05) 0%, transparent 60%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Navbar ── */
+.navbar {
+  background: var(--gradient-nav);
+  padding: 0 40px;
+  display: flex; align-items: center; justify-content: space-between;
+  height: 64px;
+  position: sticky; top: 0; z-index: 100;
+  box-shadow: 0 4px 30px rgba(0,0,0,0.2);
+  border-bottom: 1px solid rgba(139,92,246,0.15);
+}
+.nav-brand { display: flex; align-items: center; gap: 12px; }
+.nav-logo {
+  font-size: 1.4rem; font-weight: 900;
+  background: linear-gradient(135deg, #f472b6, #c084fc, #60a5fa);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text; letter-spacing: -0.5px;
+}
+.nav-logo-icon {
+  width: 38px; height: 38px; border-radius: 12px;
+  background: linear-gradient(135deg, #ec4899, #8b5cf6);
+  display: flex; align-items: center; justify-content: center;
+  color: white;
+  box-shadow: 0 2px 12px rgba(139,92,246,0.4);
+}
+.nav-logo-icon i { width: 22px; height: 22px; stroke-width: 2.5; }
+.nav-actions { display: flex; gap: 8px; align-items: center; }
+.nav-btn {
+  padding: 8px 14px; border-radius: 10px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.85);
+  font-size: 0.85rem; font-weight: 500;
+  cursor: pointer; transition: all 0.2s;
+  display: inline-flex; align-items: center; gap: 6px;
+  text-decoration: none;
+  font-family: inherit;
+}
+.nav-btn:hover { background: rgba(255,255,255,0.15); color: #fff; }
+.nav-btn i { width: 16px; height: 16px; }
+.nav-btn.lang-btn { font-weight: 700; min-width: 50px; justify-content: center; }
+
+/* ── Layout ── */
+.container { max-width: 1400px; margin: 0 auto; padding: 32px 40px 80px; position: relative; z-index: 1; }
+[dir="rtl"] .container { direction: rtl; text-align: right; }
+
+.page-header {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  flex-wrap: wrap; gap: 16px; margin-bottom: 28px;
+}
+.page-title { font-size: 2.2rem; font-weight: 900; letter-spacing: -1px; }
+.page-title span {
+  background: linear-gradient(135deg, var(--accent), var(--accent-pink));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.page-sub { color: var(--text-secondary); font-size: 0.95rem; margin-top: 6px; }
+.generated { color: var(--text-muted); font-size: 0.8rem; }
+
+/* ── Headline cards ── */
+.split {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 16px; margin-bottom: 16px;
+}
+.headline-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 20px;
+  padding: 26px;
+  position: relative;
+  overflow: hidden;
+}
+.headline-card.pay::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+  background: linear-gradient(90deg, #f97316, #ec4899);
+}
+.headline-card.use::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+  background: linear-gradient(90deg, #8b5cf6, #14b8a6);
+}
+.headline-label {
+  font-size: 0.78rem; color: var(--text-secondary);
+  font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;
+  display: flex; align-items: center; gap: 8px;
+}
+[dir="rtl"] .headline-label { text-transform: none; letter-spacing: normal; }
+.headline-label i { width: 16px; height: 16px; color: var(--accent); }
+.headline-value {
+  font-size: 2.6rem; font-weight: 900; letter-spacing: -1.5px;
+  margin-top: 4px;
+}
+.headline-value .unit { font-size: 1rem; color: var(--text-secondary); font-weight: 600; margin-left: 4px; }
+.headline-sub { color: var(--text-secondary); font-size: 0.9rem; margin-top: 6px; }
+
+.line-items { margin-top: 18px; border-top: 1px solid var(--card-border); padding-top: 14px; }
+.line { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; font-size: 0.92rem; gap: 12px; }
+.line + .line { border-top: 1px dashed var(--card-border); }
+.line-name { display: flex; align-items: center; gap: 10px; color: var(--text); flex: 1; min-width: 0; }
+.line-name .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.line-name > div { min-width: 0; }
+.line-detail { color: var(--text-muted); font-size: 0.78rem; }
+.line-val { font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.line.muted .line-val { color: var(--text-muted); font-weight: 500; }
+
+/* inline-edit price */
+.price-edit {
+  display: inline-flex; align-items: baseline; gap: 4px;
+  padding: 2px 8px; border-radius: 6px;
+  background: var(--accent-light); color: var(--accent);
+  cursor: pointer; font-weight: 700;
+  border: 1px dashed transparent;
+}
+.price-edit:hover { border-color: var(--accent); }
+.price-edit input {
+  background: transparent; border: none; outline: none;
+  font-weight: 700; font-family: inherit; font-size: inherit; color: inherit;
+  width: 60px; text-align: right;
+}
+.price-edit.empty { color: var(--text-muted); background: transparent; border: 1px dashed var(--card-border); }
+
+/* ── Reality banner ── */
+.reality {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-left: 4px solid var(--warn);
+  padding: 18px 22px;
+  border-radius: 14px;
+  margin-bottom: 28px;
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+[dir="rtl"] .reality { border-left: 1px solid var(--card-border); border-right: 4px solid var(--warn); }
+.reality strong { color: var(--text); }
+
+/* ── KPIs ── */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 28px;
+}
+.kpi {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  padding: 18px;
+}
+.kpi-label {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 0.74rem; color: var(--text-secondary);
+  font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
+}
+[dir="rtl"] .kpi-label { text-transform: none; letter-spacing: normal; }
+.kpi-label i { width: 14px; height: 14px; }
+.kpi-value { font-size: 1.7rem; font-weight: 800; margin-top: 6px; letter-spacing: -1px; }
+.kpi-sub { font-size: 0.78rem; color: var(--text-muted); margin-top: 2px; }
+
+/* ── Cards ── */
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 18px;
+  padding: 22px;
+  margin-bottom: 16px;
+}
+.card-head {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 16px; gap: 12px; flex-wrap: wrap;
+}
+.card-title {
+  font-size: 1.02rem; font-weight: 700; letter-spacing: -0.3px;
+  display: flex; align-items: center; gap: 10px;
+}
+.card-title i { width: 18px; height: 18px; color: var(--accent); }
+.card-sub { color: var(--text-secondary); font-size: 0.82rem; }
+
+.scope-toggle { display: inline-flex; background: var(--accent-light); border-radius: 8px; padding: 3px; }
+.scope-toggle button {
+  background: none; border: none; padding: 5px 12px;
+  font-size: 0.78rem; font-weight: 600; color: var(--text-secondary);
+  cursor: pointer; border-radius: 6px;
+  font-family: inherit;
+}
+.scope-toggle button.active { background: var(--card-bg); color: var(--accent); box-shadow: 0 1px 4px rgba(0,0,0,0.05); }
+
+/* ── 5h block ── */
+.block5 {
+  display: grid; grid-template-columns: 180px 1fr; gap: 24px;
+  background: var(--card-bg); border: 1px solid var(--card-border);
+  border-radius: 18px; padding: 22px; margin-bottom: 16px;
+  align-items: center;
+}
+@media (max-width: 780px) { .block5 { grid-template-columns: 1fr; } }
+.block5-ring { display: flex; justify-content: center; align-items: center; position: relative; }
+.block5-ring svg { transform: rotate(-90deg); }
+.block5-ring-track { fill: none; stroke: var(--card-border); stroke-width: 14; }
+.block5-ring-fill  { fill: none; stroke: url(#block5grad); stroke-width: 14; stroke-linecap: round;
+                      transition: stroke-dashoffset 600ms ease; }
+.block5-center {
+  position: absolute; inset: 0; display: flex; flex-direction: column;
+  justify-content: center; align-items: center; text-align: center;
+}
+.block5-center .v { font-size: 1.35rem; font-weight: 800; letter-spacing: -1px; }
+.block5-center .l { font-size: 0.66rem; color: var(--text-muted); margin-top: 2px;
+                     text-transform: uppercase; letter-spacing: 0.4px; }
+[dir="rtl"] .block5-center .l { text-transform: none; letter-spacing: normal; }
+.block5-info .b5-title { font-size: 1.02rem; font-weight: 700; display: flex;
+                           align-items: center; gap: 10px; }
+.block5-info .b5-title i { width: 18px; height: 18px; color: var(--accent); }
+.block5-info .b5-sub { color: var(--text-secondary); font-size: 0.82rem; margin-top: 4px; }
+.block5-stats { display: flex; gap: 22px; margin-top: 16px; flex-wrap: wrap; }
+.block5-stat .s-l { font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;
+                     letter-spacing: 0.4px; }
+[dir="rtl"] .block5-stat .s-l { text-transform: none; letter-spacing: normal; }
+.block5-stat .s-v { font-size: 1.2rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.block5-tools { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--card-border);
+                  font-size: 0.85rem; color: var(--text-secondary); }
+.block5-tools .t-chip { display: inline-block; background: var(--accent-light);
+                          color: var(--accent); padding: 3px 9px; border-radius: 10px;
+                          margin: 2px 4px 2px 0; font-weight: 600; font-size: 0.78rem; }
+
+/* live pulse next to "generated" */
+.live-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+            background: #10b981; margin-right: 6px;
+            animation: pulse-live 1.6s ease-in-out infinite; vertical-align: middle; }
+[dir="rtl"] .live-dot { margin-right: 0; margin-left: 6px; }
+@keyframes pulse-live {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(16,185,129,0.5); }
+  50%      { opacity: 0.6; box-shadow: 0 0 0 6px rgba(16,185,129,0); }
+}
+
+/* ── Tool bars ── */
+.tool-rows { display: flex; flex-direction: column; gap: 8px; }
+.tool-row { display: grid; grid-template-columns: 1fr 60px; gap: 12px;
+              align-items: center; }
+.tool-row .tr-name { font-size: 0.88rem; font-weight: 600; color: var(--text);
+                       overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tool-row .tr-bar  { grid-column: 1 / -1; height: 6px; border-radius: 3px;
+                       background: var(--card-border); overflow: hidden; margin-top: -2px; }
+.tool-row .tr-bar-fill { height: 100%; background: linear-gradient(90deg, #8b5cf6, #ec4899);
+                            border-radius: 3px; }
+.tool-row .tr-count { font-size: 0.86rem; font-weight: 700; text-align: right;
+                        font-variant-numeric: tabular-nums; color: var(--text-secondary); }
+[dir="rtl"] .tool-row .tr-count { text-align: left; }
+
+/* ── Heatmap ── */
+.heatmap-wrap { overflow-x: auto; padding: 4px 2px; }
+.heatmap-grid {
+  display: inline-grid;
+  grid-auto-flow: column;
+  grid-template-rows: 12px repeat(7, 12px);
+  gap: 3px;
+  padding-top: 16px;
+  position: relative;
+}
+.heatmap-cell {
+  width: 12px; height: 12px; border-radius: 2px;
+  background: var(--card-border);
+  transition: transform 120ms ease;
+}
+.heatmap-cell:hover { transform: scale(1.5); outline: 1px solid var(--accent); }
+.heatmap-label-month {
+  font-size: 0.7rem; color: var(--text-muted);
+  font-weight: 600; text-align: left;
+  grid-row: 1;
+}
+.heatmap-legend {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-top: 14px; font-size: 0.78rem; color: var(--text-muted);
+}
+.heatmap-legend-scale { display: flex; align-items: center; gap: 4px; }
+.heatmap-legend-scale .heatmap-cell { width: 12px; height: 12px; }
+
+/* WoW delta chip */
+.wow-chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 8px; border-radius: 999px;
+  font-size: 0.78rem; font-weight: 700; line-height: 1;
+  background: var(--accent-light); color: var(--accent);
+}
+.wow-chip.up   { background: rgba(16,185,129,0.15); color: #10b981; }
+.wow-chip.down { background: rgba(239,68,68,0.15);  color: #ef4444; }
+.wow-chip i { width: 12px; height: 12px; }
+
+/* Limits panel button */
+.limit-edit {
+  background: transparent; border: 1px dashed var(--card-border);
+  color: var(--text-muted); cursor: pointer; padding: 4px 8px;
+  border-radius: 6px; font-size: 0.72rem; font-family: inherit;
+  display: inline-flex; align-items: center; gap: 4px;
+}
+.limit-edit:hover { border-color: var(--accent); color: var(--accent); }
+.limit-edit i { width: 12px; height: 12px; }
+.limit-popover {
+  position: absolute; top: 100%; right: 0; margin-top: 6px;
+  background: var(--card-bg); border: 1px solid var(--card-border);
+  border-radius: 10px; padding: 14px; min-width: 240px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+  z-index: 50;
+}
+[dir="rtl"] .limit-popover { right: auto; left: 0; }
+.limit-popover label { display: block; font-size: 0.75rem;
+                         color: var(--text-secondary); font-weight: 600;
+                         margin-bottom: 6px; }
+.limit-popover input {
+  width: 100%; padding: 8px 10px; font-size: 0.92rem;
+  border: 1px solid var(--card-border); border-radius: 6px;
+  background: var(--bg); color: var(--text); font-family: inherit;
+}
+.limit-popover .preset-row { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
+.limit-popover .preset {
+  flex: 1; padding: 6px 8px; font-size: 0.74rem;
+  border: 1px solid var(--card-border); border-radius: 6px;
+  background: transparent; color: var(--text-secondary);
+  cursor: pointer; font-family: inherit; font-weight: 600;
+}
+.limit-popover .preset:hover { border-color: var(--accent); color: var(--accent); }
+.block5-ring { position: relative; }
+
+.grid-2 { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; margin-bottom: 16px; }
+
+table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+[dir="rtl"] table th, [dir="rtl"] table td { text-align: right; }
+th {
+  text-align: left; padding: 8px 10px;
+  font-size: 0.72rem; font-weight: 600; text-transform: uppercase;
+  color: var(--text-secondary); letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--card-border);
+}
+[dir="rtl"] th { text-transform: none; letter-spacing: normal; }
+td { padding: 10px; border-bottom: 1px solid var(--card-border); }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--accent-light); }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+[dir="rtl"] td.num, [dir="rtl"] th.num { text-align: left; }
+td.label { font-weight: 600; }
+
+.pill {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 9px; border-radius: 999px;
+  font-size: 0.72rem; font-weight: 600;
+}
+.pill.opus     { background: rgba(139,92,246,0.13); color: var(--opus); }
+.pill.sonnet   { background: rgba(236,72,153,0.13); color: var(--sonnet); }
+.pill.haiku    { background: rgba(20,184,166,0.13); color: var(--haiku); }
+.pill.unknown  { background: rgba(156,163,175,0.13); color: #6b7280; }
+.pill.openai   { background: rgba(16,185,129,0.13); color: #059669; }
+.pill.anthropic{ background: rgba(139,92,246,0.13); color: var(--opus); }
+.pill.kolbo    { background: rgba(245,158,11,0.13); color: var(--warn); }
+
+.chart-wrap { position: relative; height: 280px; }
+.chart-wrap.short { height: 220px; }
+
+.bar-row { display: flex; align-items: center; gap: 10px; padding: 7px 0; font-size: 0.88rem; }
+.bar-row + .bar-row { border-top: 1px solid var(--card-border); }
+.bar-row .bn { flex: 0 0 38%; font-weight: 600; }
+.bar-row .bv { flex: 0 0 80px; text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; }
+.bar-row .bm { flex: 0 0 80px; text-align: right; font-size: 0.78rem; color: var(--text-muted); }
+[dir="rtl"] .bar-row .bv, [dir="rtl"] .bar-row .bm { text-align: left; }
+.bar-track { flex: 1; height: 8px; background: var(--accent-light); border-radius: 4px; overflow: hidden; }
+.bar-fill  { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-pink)); border-radius: 4px; }
+
+.footer {
+  text-align: center; color: var(--text-muted); font-size: 0.82rem;
+  padding: 28px 0; border-top: 1px solid var(--card-border); margin-top: 40px;
+}
+.footer code {
+  background: var(--accent-light); padding: 2px 8px; border-radius: 6px;
+  color: var(--accent); font-size: 0.85rem;
+}
+.loading, .error { text-align: center; padding: 60px 20px; color: var(--text-secondary); }
+.error { color: var(--bad); }
+
+.help-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 14px; height: 14px; margin-left: 4px;
+  color: var(--text-muted); cursor: help;
+}
+[dir="rtl"] .help-icon { margin-left: 0; margin-right: 4px; }
+
+@media (max-width: 900px) {
+  .container { padding: 20px; }
+  .split { grid-template-columns: 1fr; }
+  .kpi-grid { grid-template-columns: 1fr 1fr; }
+  .grid-2 { grid-template-columns: 1fr; }
+  .page-title { font-size: 1.6rem; }
+}
+@media (max-width: 540px) {
+  .kpi-grid { grid-template-columns: 1fr; }
+  .nav-btn span { display: none; }
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="nav-brand">
+    <div class="nav-logo-icon"><i data-lucide="activity"></i></div>
+    <div class="nav-logo">Claude Usage</div>
+  </div>
+  <div class="nav-actions">
+    <a class="nav-btn" href="https://github.com/Yarin-ops/claude-usage-dashboard" target="_blank" rel="noopener"><i data-lucide="github"></i><span>GitHub</span></a>
+    <button class="nav-btn lang-btn" id="langBtn">עב</button>
+    <button class="nav-btn" id="themeBtn"><i data-lucide="moon"></i><span>Theme</span></button>
+    <button class="nav-btn" id="refreshBtn"><i data-lucide="refresh-cw"></i><span>Refresh</span></button>
+  </div>
+</nav>
+
+<div class="container">
+  <div id="content" class="loading">
+    <i data-lucide="loader" style="width:24px;height:24px;animation:spin 1s linear infinite;"></i>
+    <div style="margin-top:12px;">Loading…</div>
+  </div>
+</div>
+
+<script>
+/* ───────────────────────── i18n ───────────────────────── */
+const I18N = {
+  en: {
+    title_a: 'Your', title_b: 'Claude', title_c: 'reality check',
+    subtitle: 'What you actually pay. What you actually use. No marketing.',
+    generated: 'Generated',
+    sessions_scanned: 'Claude Code sessions scanned',
+
+    pay_label: 'What you actually pay (per month)',
+    pay_unit: '/ month',
+    pay_caveat_a: 'subscriptions',
+    pay_caveat_b: 'direct API',
+    pay_caveat_none: 'Flat-rate plans cover Claude Code & Claude.ai. Deployed agents bill separately.',
+
+    plan_subscriptions: 'Plan subscriptions',
+    api_pay_per_use: 'API — pay-per-use (deployed agents)',
+    edit_hint: 'click to edit',
+
+    use_label: 'What you actually use this month',
+    hours_active: 'hours active',
+    across_days: 'across',
+    days: 'days',
+    days_singular: 'day',
+    last_month: 'last month',
+    on: 'on',
+
+    msgs_month: 'Messages this month',
+    avg_per_day: 'avg per active day',
+    real_cph: 'Real cost per active hour',
+    real_cph_detail: 'real spend ÷ active hours',
+    api_billing_label: 'If billed per-token (Anthropic API rates)',
+    api_billing_detail: 'Reference only — you don\'t pay this',
+    projection: 'Projected for full month (at current pace)',
+    projection_detail: 'API-equivalent · you still pay flat',
+
+    reality_truth: 'The truth:',
+    reality_a: 'You pay',
+    reality_b: ', period. The',
+    reality_c: '"API-equivalent" number is what the same prompts',
+    reality_d: 'would',
+    reality_e: 'have cost on pay-as-you-go — it\'s a measure of',
+    reality_f: 'how much you\'re getting',
+    reality_g: ', not money in your pocket. Stop using Claude tomorrow → save',
+    reality_h: 'not',
+    reality_underuse: 'Heads up: only',
+    reality_underuse_b: 'active hours this month. At this pace you\'re underusing the plan.',
+    reality_bottomline: 'Bottom line: at',
+    reality_bottomline_b: 'h/month, the Max plan is the right tier for you.',
+
+    kpi_active_days: 'Active days',
+    kpi_active_days_sub: 'days you opened Claude Code this month',
+    kpi_messages: 'Messages',
+    kpi_messages_sub: 'per active day',
+    kpi_projects: 'Projects touched',
+    kpi_projects_sub: 'distinct folders this month',
+    kpi_topmodel: 'Top model',
+    kpi_topmodel_sub: 'msgs lifetime',
+
+    block_title: 'Current 5-hour block',
+    block_sub: 'Effective tokens (input + output + cache write — excludes cheap cache reads). Resets every 5 hours.',
+    block_tokens: 'effective tokens',
+    block_window_start: 'Window started',
+    block_msgs: 'messages',
+    block_cost: 'API-equiv cost',
+    block_inactive: 'No activity in the last 5 hours.',
+    block_tools_label: 'Tools used in this window',
+
+    card_tools: 'Tool usage breakdown',
+    card_tools_sub: 'Lifetime calls per tool',
+
+    card_heatmap: 'Activity heatmap',
+    card_heatmap_sub: 'Effective tokens per day · last 18 weeks',
+    heatmap_less: 'Less', heatmap_more: 'More',
+
+    limit_edit_label: 'Set 5h cap',
+    limit_popover_label: 'Personal token cap (effective tokens in the 5h window)',
+    limit_save: 'Save',
+    wow_label: 'vs last week',
+
+    card_daily: 'Daily activity (last 60 days)',
+    metric_hours: 'Active hours', metric_msgs: 'Messages', metric_cost: 'API-equiv $',
+    card_projects: 'Where your Claude time goes',
+    card_projects_sub: 'Lifetime · top 10 projects',
+    card_models: 'Model mix',
+    card_models_sub: 'by message count',
+    card_monthly: 'Monthly usage',
+    card_monthly_sub: 'active hours per month',
+    card_sessions: 'Recent sessions',
+    card_sessions_sub: 'last 10',
+    card_api: 'API connections (deployed agents)',
+    card_api_sub: 'Edit prices to match your actual bill',
+    th_when: 'When', th_project: 'Project', th_model: 'Model', th_msgs: 'Msgs',
+    th_agent: 'Agent', th_provider: 'Provider', th_model_used: 'Model', th_role: 'What it does', th_month: 'Monthly bill',
+    sess_count: 'sess.',
+    msgs: 'msgs',
+
+    footer_refresh: 'Refresh data',
+    footer_active_def: 'Active time counts gaps under 5 min as continuous work.',
+    footer_prices_def: 'Prices you edit are saved in this browser\'s localStorage only.',
+  },
+  he: {
+    title_a: 'תמונת', title_b: 'Claude', title_c: 'אמת',
+    subtitle: 'מה אתה באמת משלם. מה אתה באמת משתמש. בלי שיווק.',
+    generated: 'עודכן ב',
+    sessions_scanned: 'סשנים של Claude Code נסרקו',
+
+    pay_label: 'מה אתה משלם בפועל (לחודש)',
+    pay_unit: '/ חודש',
+    pay_caveat_a: 'מנויים',
+    pay_caveat_b: 'API ישיר',
+    pay_caveat_none: 'מסלולים קבועים מכסים את Claude Code ו-Claude.ai. סוכנים פרוסים מחויבים בנפרד.',
+
+    plan_subscriptions: 'מנויים',
+    api_pay_per_use: 'API — תשלום לפי שימוש (סוכנים פרוסים)',
+    edit_hint: 'לחץ לעריכה',
+
+    use_label: 'מה אתה באמת משתמש החודש',
+    hours_active: 'שעות פעילות',
+    across_days: 'על פני',
+    days: 'ימים',
+    days_singular: 'יום',
+    last_month: 'חודש שעבר',
+    on: 'על פני',
+
+    msgs_month: 'הודעות החודש',
+    avg_per_day: 'בממוצע ליום פעיל',
+    real_cph: 'עלות אמיתית לשעת עבודה',
+    real_cph_detail: 'תשלום בפועל ÷ שעות פעילות',
+    api_billing_label: 'אם היה מחויב לפי טוקנים (מחירי API של Anthropic)',
+    api_billing_detail: 'להתייחסות בלבד — אתה לא משלם את זה',
+    projection: 'תחזית לחודש מלא (לפי קצב נוכחי)',
+    projection_detail: 'שווה-ערך API · אתה משלם סכום קבוע',
+
+    reality_truth: 'האמת:',
+    reality_a: 'אתה משלם',
+    reality_b: ', נקודה. מספר',
+    reality_c: '״שווה-ערך API״ הוא כמה אותן הפניות',
+    reality_d: 'היו',
+    reality_e: 'עולות בתשלום לפי שימוש — זו מדידה של',
+    reality_f: 'כמה אתה מקבל',
+    reality_g: ', לא כסף בכיס. תפסיק להשתמש מחר → תחסוך',
+    reality_h: 'לא',
+    reality_underuse: 'שים לב: רק',
+    reality_underuse_b: 'שעות פעילות החודש. בקצב הזה אתה לא ממצה את המסלול.',
+    reality_bottomline: 'שורה תחתונה: ב-',
+    reality_bottomline_b: 'שעות לחודש, מסלול ה-Max הוא הנכון לך.',
+
+    kpi_active_days: 'ימים פעילים',
+    kpi_active_days_sub: 'ימים שפתחת Claude Code החודש',
+    kpi_messages: 'הודעות',
+    kpi_messages_sub: 'ליום פעיל',
+    kpi_projects: 'פרויקטים שנגעת בהם',
+    kpi_projects_sub: 'תיקיות שונות החודש',
+    kpi_topmodel: 'המודל המוביל',
+    kpi_topmodel_sub: 'הודעות בכל הזמן',
+
+    block_title: 'בלוק 5 השעות הנוכחי',
+    block_sub: 'טוקנים אפקטיביים (קלט + פלט + כתיבה ל-cache — לא כולל קריאות cache זולות). מתאפס כל 5 שעות.',
+    block_tokens: 'טוקנים אפקטיביים',
+    block_window_start: 'החלון התחיל ב',
+    block_msgs: 'הודעות',
+    block_cost: 'עלות שווה-ערך API',
+    block_inactive: 'אין פעילות ב-5 השעות האחרונות.',
+    block_tools_label: 'כלים בשימוש בחלון הזה',
+
+    card_tools: 'התפלגות שימוש בכלים',
+    card_tools_sub: 'כמות קריאות לכל כלי (lifetime)',
+
+    card_heatmap: 'מפת חום של פעילות',
+    card_heatmap_sub: 'טוקנים אפקטיביים ליום · 18 שבועות אחרונים',
+    heatmap_less: 'פחות', heatmap_more: 'יותר',
+
+    limit_edit_label: 'הגדר תקרת 5h',
+    limit_popover_label: 'תקרת טוקנים אישית (טוקנים אפקטיביים בחלון 5 שעות)',
+    limit_save: 'שמור',
+    wow_label: 'מול שבוע שעבר',
+
+    card_daily: 'פעילות יומית (60 ימים אחרונים)',
+    metric_hours: 'שעות פעילות', metric_msgs: 'הודעות', metric_cost: 'שווה-ערך API ($)',
+    card_projects: 'איפה הזמן שלך ב-Claude הולך',
+    card_projects_sub: 'מצטבר · 10 פרויקטים מובילים',
+    card_models: 'תמהיל מודלים',
+    card_models_sub: 'לפי מספר הודעות',
+    card_monthly: 'שימוש חודשי',
+    card_monthly_sub: 'שעות פעילות לחודש',
+    card_sessions: 'סשנים אחרונים',
+    card_sessions_sub: '10 אחרונים',
+    card_api: 'חיבורי API (סוכנים פרוסים)',
+    card_api_sub: 'ערוך מחירים כדי שיתאימו לחשבונית האמיתית שלך',
+    th_when: 'מתי', th_project: 'פרויקט', th_model: 'מודל', th_msgs: 'הודעות',
+    th_agent: 'סוכן', th_provider: 'ספק', th_model_used: 'מודל', th_role: 'תפקיד', th_month: 'חיוב חודשי',
+    sess_count: 'סשנים',
+    msgs: 'הודעות',
+
+    footer_refresh: 'לרענון נתונים',
+    footer_active_def: 'זמן פעיל סופר פערים של פחות מ-5 דקות כעבודה רציפה.',
+    footer_prices_def: 'מחירים שאתה עורך נשמרים ב-localStorage של הדפדפן הזה בלבד.',
+  },
+};
+
+/* ───────────────────────── Configuration ───────────────────────── */
+/* Subscriptions — flat-rate, USD/month. Edit when prices change. */
+/* Edit this list to match your own monthly subscriptions.
+   These are example defaults — adjust prices, add/remove rows. */
+const SUBSCRIPTIONS = [
+  { id: 'claude-max', name_en: 'Claude Max', name_he: 'Claude Max', vendor: 'Anthropic', usd: 100, color: '#8b5cf6', what_en: 'Claude Code + Claude.ai', what_he: 'Claude Code + Claude.ai' },
+];
+
+/* Optional: list any pay-per-use API connections (deployed agents, separate billing).
+   Prices start blank — click "—" in the dashboard to enter the real amount from
+   your vendor's billing page. Values save in localStorage on your device only.
+   Leave the array empty if you don't have any. */
+const API_CONNECTIONS = [
+  // Example shape — uncomment and edit:
+  // {
+  //   id: 'my-agent',
+  //   name_en: 'My deployed agent',
+  //   name_he: 'הסוכן שלי',
+  //   provider: 'anthropic',
+  //   model: 'claude-sonnet-4-6',
+  //   role_en: 'What it does',
+  //   role_he: 'מה הוא עושה',
+  //   estimate_usd: null,
+  //   billing_url: 'https://console.anthropic.com/settings/usage',
+  // },
+];
+
+/* ───────────────────────── Helpers ───────────────────────── */
+function L() { return I18N[document.documentElement.lang === 'he' ? 'he' : 'en']; }
+function isHe() { return document.documentElement.lang === 'he'; }
+
+function fmtMoney(v) {
+  const n = Number(v) || 0;
+  if (Math.abs(n) >= 100) return '$' + Math.round(n).toLocaleString('en-US');
+  return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+function fmtInt(v) { return Number(v || 0).toLocaleString('en-US'); }
+function fmtDate(iso) { try { return new Date(iso).toLocaleDateString(isHe() ? 'he-IL' : 'en-US', { month:'short', day:'numeric' }); } catch { return iso; } }
+function fmtDateTime(iso) { try { return new Date(iso).toLocaleString(isHe() ? 'he-IL' : 'en-US', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }); } catch { return iso; } }
+function escapeHtml(s) { return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const COLORS = {
+  opus:   () => css('--opus'),
+  sonnet: () => css('--sonnet'),
+  haiku:  () => css('--haiku'),
+  accent: () => css('--accent'),
+  pink:   () => css('--accent-pink'),
+  textSec:() => css('--text-secondary'),
+  grid:   () => css('--grid'),
+};
+
+/* ───────────────────────── Price storage ───────────────────────── */
+/* Returns null when the user hasn't entered a real price yet. */
+function getPriceOverride(id, fallback) {
+  const raw = localStorage.getItem('claude-usage-price-' + id);
+  if (raw === null || raw === '') return (fallback === undefined ? null : fallback);
+  const n = parseFloat(raw);
+  return isNaN(n) ? (fallback === undefined ? null : fallback) : n;
+}
+function setPriceOverride(id, value) {
+  if (value === null || value === '' || value === undefined) {
+    localStorage.removeItem('claude-usage-price-' + id);
+  } else {
+    localStorage.setItem('claude-usage-price-' + id, String(value));
+  }
+}
+
+/* ───────────────────────── Data loaders ───────────────────────── */
+let dataCache = null;
+let charts = {};
+
+async function loadData() {
+  if (window.CLAUDE_USAGE_DATA) return window.CLAUDE_USAGE_DATA;
+  try {
+    const r = await fetch('claude-usage-data.json?t=' + Date.now());
+    if (!r.ok) throw new Error();
+    return await r.json();
+  } catch { return null; }
+}
+async function refreshData() {
+  return new Promise((resolve) => {
+    const s = document.createElement('script');
+    s.src = 'claude-usage-data.js?t=' + Date.now();
+    s.onload  = () => resolve(window.CLAUDE_USAGE_DATA || null);
+    s.onerror = () => resolve(null);
+    document.head.appendChild(s);
+  });
+}
+
+function countActiveProjects(data, monthKey) {
+  if (!monthKey) return 0;
+  const s = new Set();
+  for (const sess of (data.recent_sessions || [])) {
+    if (sess.last.startsWith(monthKey)) s.add(sess.project);
+  }
+  return s.size;
+}
+
+/* ───────────────────────── Render ───────────────────────── */
+function priceEditHTML(id, value, billingUrl) {
+  const hasValue = (value !== null && value !== undefined && value !== '');
+  const v = hasValue ? value : '';
+  const cls = hasValue ? 'price-edit' : 'price-edit empty';
+  const linkHtml = (!hasValue && billingUrl)
+    ? `<a href="${billingUrl}" target="_blank" rel="noopener" style="font-size:0.72rem; color:var(--text-muted); margin-left:8px; text-decoration:underline;" onclick="event.stopPropagation()">${isHe() ? 'בדוק חיובים' : 'check billing'} ↗</a>`
+    : '';
+  const placeholder = isHe() ? 'הזן סכום חודשי' : 'enter monthly $';
+  return `<span class="${cls}" data-price-id="${id}" title="${L().edit_hint}">
+            ${hasValue ? '$' : ''}<input type="number" min="0" step="0.01" value="${v}" placeholder="${placeholder}" style="width:${hasValue ? '60px' : '120px'};">
+          </span>${linkHtml}`;
+}
+
+function render(data) {
+  dataCache = data;
+  const t      = data.totals;
+  const months = data.by_month;
+  const days   = data.by_day;
+  const models = data.by_model;
+  const projects = data.by_project;
+  const sessions = data.recent_sessions || [];
+  const lng = L();
+
+  const thisMonth = months.length ? months[months.length - 1] : null;
+  const prevMonth = months.length > 1 ? months[months.length - 2] : null;
+
+  // Subscriptions total (flat-rate, always known).
+  const subs = SUBSCRIPTIONS.map(s => ({ ...s, usd: getPriceOverride(s.id, s.usd) }));
+  const subsTotal = subs.reduce((sum, x) => sum + (x.usd || 0), 0);
+
+  // API connections — start as null until user enters real billing.
+  // Only entered values count toward the total.
+  const apis = API_CONNECTIONS.map(a => ({ ...a, usd: getPriceOverride(a.id, a.estimate_usd) }));
+  const apisWithValue = apis.filter(a => a.usd !== null && a.usd !== undefined);
+  const apisMissing   = apis.filter(a => a.usd === null || a.usd === undefined);
+  const apiTotal = apisWithValue.reduce((sum, a) => sum + a.usd, 0);
+
+  const totalMonthly = subsTotal + apiTotal;
+
+  // This-month usage.
+  const monthLabel = thisMonth ? new Date(thisMonth.month + '-01').toLocaleString(isHe() ? 'he-IL' : 'en-US', { month: 'long', year: 'numeric' }) : '—';
+  const activeDays   = thisMonth ? thisMonth.active_days || 0 : 0;
+  const activeHours  = thisMonth ? thisMonth.active_hours || 0 : 0;
+  const msgsThis     = thisMonth ? thisMonth.messages : 0;
+  const msgsPerDay   = thisMonth ? thisMonth.messages_per_active_day || 0 : 0;
+  const apiEquivThis = thisMonth ? thisMonth.cost : 0;
+  const realCostPerHour = activeHours ? totalMonthly / activeHours : 0;
+
+  const today = new Date();
+  const dayOfMonth = today.getUTCDate();
+  const isCurrent  = thisMonth && thisMonth.month === `${today.getUTCFullYear()}-${String(today.getUTCMonth()+1).padStart(2,'0')}`;
+  const projection = isCurrent && dayOfMonth > 0 ? (apiEquivThis / dayOfMonth) * 30 : null;
+
+  const generated = lng.generated + ' ' + fmtDateTime(data.generated_at) + ' · ' + fmtInt(data.files_scanned) + ' ' + lng.sessions_scanned;
+
+  document.getElementById('content').innerHTML = `
+
+    <div class="page-header">
+      <div>
+        <div class="page-title">${lng.title_a} <span>${lng.title_b}</span> ${lng.title_c}</div>
+        <div class="page-sub">${lng.subtitle}</div>
+      </div>
+      <div class="generated"><span class="live-dot" title="live"></span>${generated}</div>
+    </div>
+
+    ${renderBlock5(data, lng)}
+
+    <!-- Activity heatmap -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title"><i data-lucide="grid-3x3"></i> ${lng.card_heatmap}</div>
+        <div class="card-sub">${lng.card_heatmap_sub}</div>
+      </div>
+      ${renderHeatmap(data, lng)}
+    </div>
+
+    <!-- HEADLINE: pay vs use -->
+    <div class="split">
+
+      <div class="headline-card pay">
+        <div class="headline-label"><i data-lucide="wallet"></i> ${lng.pay_label}</div>
+        <div class="headline-value">${fmtMoney(totalMonthly)}${apisMissing.length ? `<span style="color:var(--warn); font-size:1.6rem; vertical-align:super; margin-left:4px;">+?</span>` : ''}<span class="unit">${lng.pay_unit}</span></div>
+        <div class="headline-sub">
+          ${fmtMoney(subsTotal)} ${lng.pay_caveat_a} · ${fmtMoney(apiTotal)} ${lng.pay_caveat_b}
+          ${apisMissing.length ? `<div style="margin-top:8px; padding:8px 10px; background:rgba(245,158,11,0.1); border-left:3px solid var(--warn); border-radius:4px; color:var(--text); font-size:0.85rem;">
+            <strong>${isHe() ? '⚠ סכום חלקי' : '⚠ Partial total'}</strong> — ${isHe() ? `${apisMissing.length} חיבורי API עדיין לא הוזנו (${apisMissing.map(a => isHe() ? a.name_he : a.name_en).join(', ')}). לחץ על "—" לידם כדי להוסיף את הסכום האמיתי מהחשבונית.` : `${apisMissing.length} API connections not entered yet (${apisMissing.map(a => isHe() ? a.name_he : a.name_en).join(', ')}). Click "—" next to them to add the real amount from your bill.`}
+          </div>` : ''}
+        </div>
+
+        <!-- Subscriptions -->
+        <div class="line-items">
+          <div style="font-size:0.72rem; font-weight:700; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px;">
+            ${lng.plan_subscriptions}
+          </div>
+          ${subs.map(s => `
+            <div class="line">
+              <div class="line-name">
+                <span class="dot" style="background:${s.color}"></span>
+                <div>
+                  <div>${isHe() ? s.name_he : s.name_en}</div>
+                  <div class="line-detail">${s.vendor} · ${isHe() ? s.what_he : s.what_en}</div>
+                </div>
+              </div>
+              <div class="line-val">${priceEditHTML(s.id, s.usd)}</div>
+            </div>`).join('')}
+        </div>
+
+        <!-- API connections -->
+        <div class="line-items">
+          <div style="font-size:0.72rem; font-weight:700; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px;">
+            ${lng.api_pay_per_use}
+          </div>
+          ${apis.map(a => `
+            <div class="line">
+              <div class="line-name">
+                <span class="pill ${a.provider}" style="margin-right:6px;">${a.provider}</span>
+                <div>
+                  <div>${isHe() ? a.name_he : a.name_en}</div>
+                  <div class="line-detail">${a.model} · ${isHe() ? a.role_he : a.role_en}</div>
+                </div>
+              </div>
+              <div class="line-val">${priceEditHTML(a.id, a.usd, a.billing_url)}</div>
+            </div>`).join('')}
+        </div>
+      </div>
+
+      <div class="headline-card use">
+        <div class="headline-label"><i data-lucide="cpu"></i> ${lng.use_label} (${monthLabel})</div>
+        <div class="headline-value">${activeHours.toFixed(1)}<span class="unit">${lng.hours_active}</span></div>
+        <div class="headline-sub">
+          ${lng.across_days} ${activeDays} ${activeDays === 1 ? lng.days_singular : lng.days}
+          ${prevMonth ? ` · ${lng.last_month}: ${(prevMonth.active_hours || 0).toFixed(1)}h ${lng.on} ${prevMonth.active_days || 0} ${lng.days}` : ''}
+        </div>
+        <div class="line-items">
+          <div class="line">
+            <div class="line-name"><i data-lucide="message-square" style="width:14px;height:14px;color:var(--text-secondary)"></i>
+              <div><div>${lng.msgs_month}</div><div class="line-detail">${msgsPerDay.toFixed(0)} ${lng.avg_per_day}</div></div>
+            </div>
+            <div class="line-val">${fmtInt(msgsThis)}</div>
+          </div>
+          <div class="line">
+            <div class="line-name"><i data-lucide="dollar-sign" style="width:14px;height:14px;color:var(--text-secondary)"></i>
+              <div><div>${lng.real_cph}</div><div class="line-detail">${fmtMoney(totalMonthly)} ÷ ${activeHours.toFixed(1)}h</div></div>
+            </div>
+            <div class="line-val">${activeHours ? fmtMoney(realCostPerHour) : '—'}</div>
+          </div>
+          <div class="line muted">
+            <div class="line-name"><i data-lucide="calculator" style="width:14px;height:14px;color:var(--text-muted)"></i>
+              <div><div>${lng.api_billing_label}</div><div class="line-detail">${lng.api_billing_detail}</div></div>
+            </div>
+            <div class="line-val">${fmtMoney(apiEquivThis)}</div>
+          </div>
+          ${projection !== null ? `
+          <div class="line muted">
+            <div class="line-name"><i data-lucide="trending-up" style="width:14px;height:14px;color:var(--text-muted)"></i>
+              <div><div>${lng.projection}</div><div class="line-detail">${lng.projection_detail} ${fmtMoney(totalMonthly)}</div></div>
+            </div>
+            <div class="line-val">${fmtMoney(projection)}</div>
+          </div>` : ''}
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Reality check -->
+    <div class="reality">
+      <strong>${lng.reality_truth}</strong>
+      ${lng.reality_a} <strong>${fmtMoney(totalMonthly)}/${isHe() ? 'חודש' : 'month'}</strong>${lng.reality_b}
+      ${lng.reality_c} <em>${lng.reality_d}</em> ${lng.reality_e} <em>${lng.reality_f}</em>${lng.reality_g}
+      <strong>${fmtMoney(totalMonthly)}</strong>, ${lng.reality_h} ${fmtMoney(apiEquivThis)}.
+      ${activeHours < 5 ? `<br><br><strong>${lng.reality_underuse}</strong> ${activeHours.toFixed(1)}h ${lng.reality_underuse_b}` : ''}
+      ${activeHours >= 20 ? `<br><br><strong>${lng.reality_bottomline}</strong>${activeHours.toFixed(0)}${lng.reality_bottomline_b}` : ''}
+    </div>
+
+    <!-- KPIs -->
+    <div class="kpi-grid">
+      <div class="kpi">
+        <div class="kpi-label"><i data-lucide="calendar-check"></i> ${lng.kpi_active_days}</div>
+        <div class="kpi-value">${activeDays}<span style="font-size:0.85rem;color:var(--text-secondary);font-weight:500;"> / ${dayOfMonth}</span></div>
+        <div class="kpi-sub">${lng.kpi_active_days_sub}</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label"><i data-lucide="message-square"></i> ${lng.kpi_messages}</div>
+        <div class="kpi-value">${fmtInt(msgsThis)}</div>
+        <div class="kpi-sub">${msgsPerDay.toFixed(0)} ${lng.kpi_messages_sub}</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label"><i data-lucide="folder-tree"></i> ${lng.kpi_projects}</div>
+        <div class="kpi-value">${countActiveProjects(data, thisMonth?.month)}</div>
+        <div class="kpi-sub">${lng.kpi_projects_sub}</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label"><i data-lucide="zap"></i> ${lng.kpi_topmodel}</div>
+        <div class="kpi-value">${models[0]?.model || '—'}</div>
+        <div class="kpi-sub">${fmtInt(models[0]?.messages || 0)} ${lng.kpi_topmodel_sub}</div>
+      </div>
+    </div>
+
+    <!-- Tool usage breakdown -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title"><i data-lucide="wrench"></i> ${lng.card_tools}</div>
+        <div class="card-sub">${lng.card_tools_sub}</div>
+      </div>
+      <div>${renderToolBreakdown(data.by_tool || [])}</div>
+    </div>
+
+    <!-- Daily activity -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title"><i data-lucide="trending-up"></i> ${lng.card_daily}
+          ${renderWowChip(data, lng)}
+        </div>
+        <div class="scope-toggle">
+          <button data-metric="hours" class="active">${lng.metric_hours}</button>
+          <button data-metric="messages">${lng.metric_msgs}</button>
+          <button data-metric="cost">${lng.metric_cost}</button>
+        </div>
+      </div>
+      <div class="chart-wrap"><canvas id="dailyChart"></canvas></div>
+    </div>
+
+    <!-- Projects + model -->
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title"><i data-lucide="folder-tree"></i> ${lng.card_projects}</div>
+          <div class="card-sub">${lng.card_projects_sub}</div>
+        </div>
+        <div>${renderProjectBars(projects.slice(0, 10))}</div>
+      </div>
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title"><i data-lucide="pie-chart"></i> ${lng.card_models}</div>
+          <div class="card-sub">${lng.card_models_sub}</div>
+        </div>
+        <div class="chart-wrap short"><canvas id="modelChart"></canvas></div>
+      </div>
+    </div>
+
+    <!-- Monthly + sessions -->
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title"><i data-lucide="bar-chart-3"></i> ${lng.card_monthly}</div>
+          <div class="card-sub">${lng.card_monthly_sub}</div>
+        </div>
+        <div class="chart-wrap short"><canvas id="monthlyChart"></canvas></div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title"><i data-lucide="history"></i> ${lng.card_sessions}</div>
+          <div class="card-sub">${lng.card_sessions_sub}</div>
+        </div>
+        <table>
+          <thead><tr>
+            <th>${lng.th_when}</th><th>${lng.th_project}</th><th>${lng.th_model}</th><th class="num">${lng.th_msgs}</th>
+          </tr></thead>
+          <tbody>
+            ${sessions.slice(0, 10).map(s => `
+              <tr>
+                <td>${fmtDate(s.last)}</td>
+                <td class="label" style="max-width:160px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(s.project)}</td>
+                <td><span class="pill ${s.model}">${s.model}</span></td>
+                <td class="num">${fmtInt(s.messages)}</td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- API connections detail card -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title"><i data-lucide="plug"></i> ${lng.card_api}</div>
+        <div class="card-sub">${lng.card_api_sub}</div>
+      </div>
+      <table>
+        <thead><tr>
+          <th>${lng.th_agent}</th>
+          <th>${lng.th_provider}</th>
+          <th>${lng.th_model_used}</th>
+          <th>${lng.th_role}</th>
+          <th class="num">${lng.th_month}</th>
+        </tr></thead>
+        <tbody>
+          ${apis.map(a => `
+            <tr>
+              <td class="label">${isHe() ? a.name_he : a.name_en}<br><span style="font-size:0.75rem;color:var(--text-muted);">${a.path}</span></td>
+              <td><span class="pill ${a.provider}">${a.provider}</span></td>
+              <td><code style="font-size:0.78rem;background:var(--accent-light);padding:2px 6px;border-radius:4px;color:var(--accent);">${a.model}</code></td>
+              <td>${isHe() ? a.role_he : a.role_en}</td>
+              <td class="num">${priceEditHTML(a.id, a.usd, a.billing_url)}</td>
+            </tr>`).join('')}
+          <tr>
+            <td colspan="4" class="label" style="text-align:right;">${isHe() ? 'סה״כ API חודשי' : 'API total / month'}</td>
+            <td class="num"><strong>${fmtMoney(apiTotal)}</strong></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="footer">
+      ${lng.footer_refresh}: <code>python3 _scripts/claude_usage_analyzer.py</code><br>
+      ${lng.footer_active_def} ${lng.footer_prices_def}
+    </div>
+  `;
+
+  lucide.createIcons();
+  renderCharts(data);
+  wireMetricToggle(data);
+  wirePriceEditors();
+  wireLimitsPanel();
+}
+
+/* Shorten very long tool names so they don't break the layout.
+   MCP tools are named `mcp__<server>__<tool>` — keep the server + tool only. */
+function prettyToolName(name) {
+  if (!name) return '?';
+  if (name.startsWith('mcp__')) {
+    const parts = name.split('__');
+    if (parts.length >= 3) {
+      const server = parts[1].length > 12 ? parts[1].slice(0, 10) + '…' : parts[1];
+      return `mcp:${server}/${parts.slice(2).join('_')}`;
+    }
+  }
+  return name;
+}
+
+function renderToolBreakdown(tools) {
+  const lng = L();
+  if (!tools.length) {
+    return `<div style="color:var(--text-muted); font-size:0.85rem;">${isHe() ? 'אין נתוני שימוש בכלים עדיין.' : 'No tool usage data yet.'}</div>`;
+  }
+  const top = tools.slice(0, 12);
+  const max = top[0].count;
+  return `<div class="tool-rows">${top.map(t => {
+    const pct = (t.count / max) * 100;
+    const name = prettyToolName(t.name);
+    return `
+      <div class="tool-row">
+        <div class="tr-name" title="${escapeHtml(t.name)}">${escapeHtml(name)}</div>
+        <div class="tr-count">${fmtInt(t.count)}</div>
+        <div class="tr-bar"><div class="tr-bar-fill" style="width:${pct}%"></div></div>
+      </div>`;
+  }).join('')}</div>`;
+}
+
+function renderBlock5(data, lng) {
+  const b = data.current_block;
+  if (!b || !b.messages) {
+    return `
+      <div class="block5">
+        <div class="block5-ring">${block5SvgEmpty()}</div>
+        <div class="block5-info">
+          <div class="b5-title"><i data-lucide="timer"></i> ${lng.block_title}</div>
+          <div class="b5-sub">${lng.block_inactive}</div>
+        </div>
+      </div>`;
+  }
+  // Personal cap (settable via the "Set 5h cap" button + Limits popover).
+  const cap = getCap();
+  const pct = Math.min(100, (b.effective_tokens / cap) * 100);
+  const startedAt = b.started_at ? new Date(b.started_at) : null;
+  const startedStr = startedAt
+    ? startedAt.toLocaleTimeString(isHe() ? 'he-IL' : 'en-US', { hour: '2-digit', minute: '2-digit' })
+    : '—';
+  const toolsLine = (b.tools || []).slice(0, 6).map(t =>
+    `<span class="t-chip">${escapeHtml(prettyToolName(t.name))} · ${t.count}</span>`
+  ).join('');
+
+  return `
+    <div class="block5">
+      <div class="block5-ring">${block5Svg(pct)}
+        <div class="block5-center">
+          <div class="v">${pct.toFixed(0)}%</div>
+          <div class="l">${isHe() ? 'מנוצל' : 'used'}</div>
+        </div>
+      </div>
+      <div class="block5-info">
+        <div class="b5-title">
+          <i data-lucide="timer"></i> ${lng.block_title}
+          <span style="margin-${isHe()?'right':'left'}:auto; position:relative;" id="limitWrap">
+            <button class="limit-edit" id="limitBtn">
+              <i data-lucide="sliders-horizontal"></i> ${lng.limit_edit_label}: ${fmtInt(cap)}
+            </button>
+          </span>
+        </div>
+        <div class="b5-sub">${lng.block_sub}</div>
+        <div class="block5-stats">
+          <div class="block5-stat">
+            <div class="s-l">${lng.block_tokens}</div>
+            <div class="s-v">${fmtInt(b.effective_tokens)}</div>
+          </div>
+          <div class="block5-stat">
+            <div class="s-l">${lng.block_msgs}</div>
+            <div class="s-v">${fmtInt(b.messages)}</div>
+          </div>
+          <div class="block5-stat">
+            <div class="s-l">${lng.block_cost}</div>
+            <div class="s-v">${fmtMoney(b.cost)}</div>
+          </div>
+          <div class="block5-stat">
+            <div class="s-l">${lng.block_window_start}</div>
+            <div class="s-v">${startedStr}</div>
+          </div>
+        </div>
+        ${toolsLine ? `<div class="block5-tools"><strong>${lng.block_tools_label}:</strong> ${toolsLine}</div>` : ''}
+      </div>
+    </div>`;
+}
+
+function getCap() {
+  return parseInt(localStorage.getItem('claude-usage-5h-cap') || '4000000', 10);
+}
+function setCap(v) {
+  const n = Math.max(100000, parseInt(v, 10) || 4000000);
+  localStorage.setItem('claude-usage-5h-cap', String(n));
+  return n;
+}
+
+function renderHeatmap(data, lng) {
+  const WEEKS = 18;
+  const totalDays = WEEKS * 7;
+  const byDate = new Map((data.by_day || []).map(d => [d.date, d]));
+  // End at the end of current week (Saturday) so the rightmost column is current.
+  const today = new Date(); today.setHours(0,0,0,0);
+  const end = new Date(today); end.setDate(end.getDate() + (6 - end.getDay()));
+  const fmtKey = d => {
+    const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,'0'), dd = String(d.getDate()).padStart(2,'0');
+    return `${y}-${m}-${dd}`;
+  };
+  const cells = [];
+  for (let i = totalDays - 1; i >= 0; i--) {
+    const d = new Date(end); d.setDate(end.getDate() - i);
+    const k = fmtKey(d);
+    const day = byDate.get(k) || { date: k, effective_tokens: 0, messages: 0, cost: 0 };
+    cells.push({ ...day, _date: new Date(d), _isFuture: d > today });
+  }
+  const max = cells.reduce((m, c) => Math.max(m, c.effective_tokens || 0), 0);
+  const colorFor = (toks, isFuture) => {
+    if (isFuture) return 'transparent';
+    if (!toks) return '';  // uses --card-border default
+    const t = Math.min(1, Math.sqrt(toks / Math.max(1, max)));
+    // gradient from light purple to bright pink-magenta
+    const alpha = 0.18 + t * 0.82;
+    return `rgba(168, 85, 247, ${alpha.toFixed(2)})`;
+  };
+
+  // Build month-label positions: a label appears in the first column of a new month
+  const columns = [];
+  for (let w = 0; w < WEEKS; w++) columns.push(cells.slice(w * 7, w * 7 + 7));
+  const MONTHS_EN = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const MONTHS_HE = ['ינו','פבר','מרץ','אפר','מאי','יונ','יול','אוג','ספט','אוק','נוב','דצמ'];
+  const months = isHe() ? MONTHS_HE : MONTHS_EN;
+  let lastMonth = -1;
+  const monthLabels = columns.map(col => {
+    const m = col[0]._date.getMonth();
+    if (m !== lastMonth) { lastMonth = m; return months[m]; }
+    return '';
+  });
+
+  // Render grid as flat list with grid-row positions
+  // Row 1 = month labels, Rows 2-8 = Sun..Sat
+  const cellsHtml = [];
+  columns.forEach((col, ci) => {
+    if (monthLabels[ci]) {
+      cellsHtml.push(`<div class="heatmap-label-month" style="grid-column:${ci+1};grid-row:1;">${monthLabels[ci]}</div>`);
+    }
+    col.forEach((cell, ri) => {
+      const bg = colorFor(cell.effective_tokens, cell._isFuture);
+      const dateLabel = cell._date.toLocaleDateString(isHe() ? 'he-IL' : 'en-US', { month:'short', day:'numeric', year:'numeric' });
+      const tip = cell._isFuture
+        ? ''
+        : `${dateLabel} · ${fmtInt(cell.effective_tokens||0)} ${isHe()?'טוקנים':'tokens'} · ${cell.messages||0} ${isHe()?'הודעות':'msgs'}`;
+      cellsHtml.push(
+        `<div class="heatmap-cell" style="grid-column:${ci+1};grid-row:${ri+2};${bg?'background:'+bg:''}" title="${escapeHtml(tip)}"></div>`
+      );
+    });
+  });
+
+  // Legend
+  const legendSteps = [0, 0.15, 0.35, 0.65, 1];
+  const legendHtml = legendSteps.map(t => {
+    if (t === 0) return `<div class="heatmap-cell"></div>`;
+    const a = 0.18 + t * 0.82;
+    return `<div class="heatmap-cell" style="background: rgba(168,85,247,${a.toFixed(2)})"></div>`;
+  }).join('');
+
+  return `
+    <div class="heatmap-wrap">
+      <div class="heatmap-grid">${cellsHtml.join('')}</div>
+    </div>
+    <div class="heatmap-legend">
+      <div>${(() => {
+        const active = (data.by_day || []).filter(d => d.effective_tokens > 0).length;
+        return `${active} ${isHe()?'ימים פעילים בכל הזמן':'active days lifetime'}`;
+      })()}</div>
+      <div class="heatmap-legend-scale">
+        <span>${lng.heatmap_less}</span>
+        ${legendHtml}
+        <span>${lng.heatmap_more}</span>
+      </div>
+    </div>`;
+}
+
+function renderWowChip(data, lng) {
+  const days = (data.by_day || []).slice();
+  if (days.length < 14) return '';
+  // Sum effective tokens for the last 7 days vs the 7 before that
+  const last7  = days.slice(-7 ).reduce((s, d) => s + (d.effective_tokens || 0), 0);
+  const prev7  = days.slice(-14, -7).reduce((s, d) => s + (d.effective_tokens || 0), 0);
+  if (!prev7) return '';
+  const pct = ((last7 - prev7) / prev7) * 100;
+  const up = pct >= 0;
+  const cls = Math.abs(pct) < 2 ? '' : (up ? 'up' : 'down');
+  const icon = up ? 'trending-up' : 'trending-down';
+  const sign = up ? '+' : '';
+  return `<span class="wow-chip ${cls}" title="${lng.wow_label}">
+    <i data-lucide="${icon}"></i>${sign}${pct.toFixed(1)}%
+  </span>`;
+}
+
+function block5Svg(pct) {
+  // r=70 → circumference = 2πr ≈ 439.82
+  const R = 70, C = 2 * Math.PI * R;
+  const offset = C * (1 - pct / 100);
+  return `
+    <svg width="160" height="160" viewBox="0 0 160 160">
+      <defs>
+        <linearGradient id="block5grad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#8b5cf6"/>
+          <stop offset="100%" stop-color="#ec4899"/>
+        </linearGradient>
+      </defs>
+      <circle class="block5-ring-track" cx="80" cy="80" r="${R}"/>
+      <circle class="block5-ring-fill"  cx="80" cy="80" r="${R}"
+              stroke-dasharray="${C}" stroke-dashoffset="${offset}"/>
+    </svg>`;
+}
+function block5SvgEmpty() { return block5Svg(0); }
+
+function renderProjectBars(projects) {
+  const max = Math.max(...projects.map(p => p.messages), 1);
+  return projects.map(p => {
+    const pct = (p.messages / max) * 100;
+    return `
+      <div class="bar-row">
+        <div class="bn" title="${escapeHtml(p.label || p.folder)}">${escapeHtml(p.label || p.folder)}</div>
+        <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
+        <div class="bm">${fmtInt(p.sessions)} ${L().sess_count}</div>
+        <div class="bv">${fmtInt(p.messages)} ${L().msgs}</div>
+      </div>`;
+  }).join('');
+}
+
+function wireLimitsPanel() {
+  const btn = document.getElementById('limitBtn');
+  const wrap = document.getElementById('limitWrap');
+  if (!btn || !wrap) return;
+  const lng = L();
+  const presets = [
+    { label: '1M',   v:  1_000_000 },
+    { label: '2M',   v:  2_000_000 },
+    { label: '4M',   v:  4_000_000 },
+    { label: '8M',   v:  8_000_000 },
+    { label: '16M',  v: 16_000_000 },
+  ];
+  btn.addEventListener('click', e => {
+    e.stopPropagation();
+    let pop = wrap.querySelector('.limit-popover');
+    if (pop) { pop.remove(); return; }
+    pop = document.createElement('div');
+    pop.className = 'limit-popover';
+    pop.innerHTML = `
+      <label>${lng.limit_popover_label}</label>
+      <input type="number" id="limitInput" value="${getCap()}" min="100000" step="100000">
+      <div class="preset-row">
+        ${presets.map(p => `<button class="preset" data-val="${p.v}">${p.label}</button>`).join('')}
+      </div>
+      <div style="display:flex; justify-content:flex-end; margin-top:10px;">
+        <button class="preset" id="limitSave" style="border-color:var(--accent); color:var(--accent);">${lng.limit_save}</button>
+      </div>`;
+    pop.addEventListener('click', e2 => e2.stopPropagation());
+    wrap.appendChild(pop);
+    pop.querySelectorAll('.preset[data-val]').forEach(p => {
+      p.addEventListener('click', () => {
+        pop.querySelector('#limitInput').value = p.dataset.val;
+      });
+    });
+    pop.querySelector('#limitSave').addEventListener('click', () => {
+      const v = pop.querySelector('#limitInput').value;
+      setCap(v);
+      if (dataCache) render(dataCache);
+    });
+  });
+  // Click outside closes
+  document.addEventListener('click', () => {
+    const pop = wrap.querySelector('.limit-popover');
+    if (pop) pop.remove();
+  }, { once: true });
+}
+
+function wireMetricToggle(data) {
+  document.querySelectorAll('.scope-toggle button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.scope-toggle button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderDailyChart(data, btn.dataset.metric);
+    });
+  });
+}
+
+function wirePriceEditors() {
+  document.querySelectorAll('.price-edit input').forEach(inp => {
+    const wrap = inp.closest('.price-edit');
+    const id = wrap.dataset.priceId;
+    inp.addEventListener('change', () => {
+      const v = inp.value === '' ? null : parseFloat(inp.value);
+      setPriceOverride(id, v);
+      // Re-render to update totals everywhere.
+      if (dataCache) render(dataCache);
+    });
+    inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') inp.blur(); });
+  });
+}
+
+function renderDailyChart(data, metric = 'hours') {
+  if (charts.daily) charts.daily.destroy();
+  const days = data.by_day.slice(-60);
+  const tickColor = COLORS.textSec();
+  const gridColor = COLORS.grid();
+
+  const cfgs = {
+    hours:    { data: days.map(d => (d.active_minutes || 0) / 60), fmt: v => v.toFixed(1) + 'h' },
+    messages: { data: days.map(d => d.messages),                   fmt: v => v + ' msgs' },
+    cost:     { data: days.map(d => d.cost),                       fmt: v => '$' + v.toFixed(2) },
+  };
+  const cfg = cfgs[metric] || cfgs.hours;
+
+  charts.daily = new Chart(document.getElementById('dailyChart'), {
+    type: 'bar',
+    data: {
+      labels: days.map(d => fmtDate(d.date)),
+      datasets: [{
+        data: cfg.data,
+        backgroundColor: (ctx) => {
+          const c = ctx.chart.ctx.createLinearGradient(0, 0, 0, 280);
+          c.addColorStop(0, COLORS.accent());
+          c.addColorStop(1, COLORS.pink());
+          return c;
+        },
+        borderRadius: 3,
+      }],
+    },
+    options: {
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: (ctx) => cfg.fmt(ctx.parsed.y) } } },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: tickColor, maxRotation: 0, autoSkip: true, maxTicksLimit: 12 } },
+        y: { grid: { color: gridColor }, ticks: { color: tickColor } },
+      },
+    },
+  });
+}
+
+function renderCharts(data) {
+  ['model', 'monthly'].forEach(k => charts[k] && charts[k].destroy());
+  const tickColor = COLORS.textSec();
+  const gridColor = COLORS.grid();
+  Chart.defaults.font.family = "'Heebo', sans-serif";
+  Chart.defaults.color = tickColor;
+
+  renderDailyChart(data, 'hours');
+
+  const models = data.by_model.filter(m => m.messages > 0);
+  charts.model = new Chart(document.getElementById('modelChart'), {
+    type: 'doughnut',
+    data: {
+      labels: models.map(m => m.model),
+      datasets: [{
+        data: models.map(m => m.messages),
+        backgroundColor: models.map(m => ({
+          opus: COLORS.opus(), sonnet: COLORS.sonnet(), haiku: COLORS.haiku(),
+        }[m.model] || '#9ca3af')),
+        borderWidth: 0,
+      }],
+    },
+    options: {
+      maintainAspectRatio: false, cutout: '60%',
+      plugins: {
+        legend: { position: 'bottom', labels: { color: tickColor, padding: 12, font: { size: 12 } } },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => {
+              const total = models.reduce((s,m) => s + m.messages, 0);
+              const pct = (ctx.parsed / total * 100).toFixed(1);
+              return ctx.label + ': ' + ctx.parsed.toLocaleString('en-US') + ' (' + pct + '%)';
+            },
+          },
+        },
+      },
+    },
+  });
+
+  const months = data.by_month;
+  charts.monthly = new Chart(document.getElementById('monthlyChart'), {
+    type: 'bar',
+    data: {
+      labels: months.map(m => m.month),
+      datasets: [{
+        data: months.map(m => m.active_hours || 0),
+        backgroundColor: COLORS.accent(),
+        borderRadius: 6,
+      }],
+    },
+    options: {
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: (ctx) => ctx.parsed.y.toFixed(1) + 'h' } } },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: tickColor } },
+        y: { grid: { color: gridColor }, ticks: { color: tickColor, callback: v => v + 'h' } },
+      },
+    },
+  });
+}
+
+/* ───────────────────────── Theme & Lang ───────────────────────── */
+function applyTheme(t) {
+  document.documentElement.dataset.theme = t;
+  localStorage.setItem('claude-usage-theme', t);
+  const icon = document.querySelector('#themeBtn i');
+  if (icon) icon.setAttribute('data-lucide', t === 'dark' ? 'sun' : 'moon');
+  lucide.createIcons();
+  if (dataCache) renderCharts(dataCache);
+}
+
+function applyLang(l) {
+  document.documentElement.lang = l;
+  document.documentElement.dir  = (l === 'he') ? 'rtl' : 'ltr';
+  localStorage.setItem('claude-usage-lang', l);
+  document.getElementById('langBtn').textContent = (l === 'he') ? 'EN' : 'עב';
+  document.title = (l === 'he') ? 'דשבורד שימוש Claude' : 'Claude Usage Dashboard';
+  if (dataCache) render(dataCache);
+}
+
+document.getElementById('themeBtn').addEventListener('click', () => {
+  applyTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
+});
+document.getElementById('langBtn').addEventListener('click', () => {
+  applyLang(document.documentElement.lang === 'he' ? 'en' : 'he');
+});
+document.getElementById('refreshBtn').addEventListener('click', async () => {
+  const btn = document.getElementById('refreshBtn');
+  btn.querySelector('i').style.animation = 'spin 1s linear infinite';
+  const d = await refreshData();
+  btn.querySelector('i').style.animation = '';
+  if (d) render(d);
+});
+
+/* ───────────────────────── Boot ───────────────────────── */
+/* One-time wipe of the fake estimates we wrote in the previous build. */
+if (!localStorage.getItem('claude-usage-estimates-cleared-v2')) {
+  for (const a of API_CONNECTIONS) localStorage.removeItem('claude-usage-price-' + a.id);
+  localStorage.setItem('claude-usage-estimates-cleared-v2', '1');
+}
+applyTheme(localStorage.getItem('claude-usage-theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+applyLang(localStorage.getItem('claude-usage-lang') || 'en');
+lucide.createIcons();
+
+loadData().then(d => {
+  if (!d) {
+    document.getElementById('content').innerHTML = `
+      <div class="error">
+        <i data-lucide="alert-triangle" style="width:32px;height:32px;"></i>
+        <div style="margin-top:12px; font-weight:600;">No usage data found.</div>
+        <div style="margin-top:6px;">Run <code>python3 _scripts/claude_usage_analyzer.py</code> first.</div>
+      </div>`;
+    lucide.createIcons();
+    return;
+  }
+  render(d);
+});
+
+/* ── Auto-polling: re-fetches the JSON every 30s and re-renders only
+   if generated_at changed. Pause when the tab is hidden to save cycles. ──
+   To regenerate the JSON in the background:
+     python3 _scripts/claude_usage_analyzer.py --watch
+*/
+const POLL_MS = 30_000;
+let _lastGen = null;
+async function pollData() {
+  if (document.hidden) return;
+  const d = await refreshData();
+  if (!d) return;
+  if (d.generated_at && d.generated_at !== _lastGen) {
+    _lastGen = d.generated_at;
+    render(d);
+  }
+}
+setInterval(pollData, POLL_MS);
+</script>
+</body>
+</html>
