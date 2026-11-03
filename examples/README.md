@@ -2,23 +2,19 @@
 
 ## `demo-data.json`
 
-A synthetic, anonymized dataset shaped exactly like what `analyzer.py` produces. Use it to see the dashboard without running the analyzer against your own logs.
+A synthetic dataset shaped exactly like what `analyzer.py` produces. Every number is invented, and its `demo` flag makes the dashboard say so. `demo-data.js` is the same data for pages opened from `file://`.
 
 ### How to use
 
-```bash
-# From the repo root:
-cp examples/demo-data.json claude-usage-data.json
-open index.html  # or xdg-open / start
-```
+Open `index.html?demo`, or click **See it with demo data** on the first-run screen.
 
-You'll see ~70 days of synthetic activity with a realistic mix of Opus / Sonnet / Haiku, 5 example projects, a populated tool breakdown, and an active 5-hour block.
+You'll see six months of synthetic activity with a mix of Fable / Opus / Sonnet / Haiku, 6 example projects, a populated tool breakdown, and an active 5-hour window.
 
-When you're ready to see your own data, run `python3 analyzer.py` — it overwrites `claude-usage-data.json` with the real thing.
+When you're ready to see your own data, run `python3 analyzer.py` and open `index.html` without `?demo`.
 
 ### Reproducibility
 
-The demo data is deterministic. The generator (committed below as a comment block) uses `random.seed(42)` so the file is identical every time it's regenerated. If you want to tweak it, copy the block into a `.py` file, change the seed or constants, and re-run.
+The demo data is deterministic. The generator uses `random.seed(42)`, so the file is identical every time it's regenerated.
 
 ### Generator
 
@@ -28,4 +24,4 @@ The source generator is `examples/generate_demo_data.py`. Edit the constants at 
 python3 examples/generate_demo_data.py
 ```
 
-Standard library only — no dependencies.
+Standard library only, plus the price table from `analyzer.py`.

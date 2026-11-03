@@ -29,8 +29,8 @@ A one-page explanation of how the three moving pieces fit together and why the d
 ┌────────────────────────────────────────────────────────────┐
 │  index.html                                                │
 │  ───────────                                               │
-│  Single HTML file. CSS + JS inline. Chart.js + Lucide      │
-│  pulled from CDN. Renders the JSON into the dashboard.     │
+│  One HTML page. CSS + JS inline. Chart.js and fonts in     │
+│  vendor/. Renders the data into the dashboard.             │
 └────────────────────────────────────────────────────────────┘
 ```
 
@@ -62,16 +62,17 @@ No external dependencies. Standard library only.
 
 ## The dashboard
 
-`index.html` is a single file containing:
+`index.html` contains:
 
+- **Icons** — the Lucide icons in use, inlined as an `ICONS` map.
 - **Inline CSS** — design tokens at the top, then component styles. Light + dark theme via `data-theme` attribute on `<html>`.
 - **i18n table** — English + Hebrew translations in one `I18N` object. The direction (`dir="ltr"` / `"rtl"`) is set at the document root.
 - **Configuration** — `SUBSCRIPTIONS` and `API_CONNECTIONS` arrays. Users edit these (or set values inline in the dashboard, which save to `localStorage`).
-- **Data loader** — `fetch('claude-usage-data.json')` with a cache-busting timestamp. Falls back to `<script src="claude-usage-data.js">` if the file is opened from `file://` (where browsers block sibling `fetch`).
+- **Data loader** — a `<script>` tag for `claude-usage-data.js` with a cache-busting timestamp, because browsers block sibling `fetch` on `file://`. `?demo` loads `examples/demo-data.js` instead.
 - **Render layer** — `render(data)` builds the HTML in one pass, then `renderCharts(data)` initializes Chart.js instances on the four `<canvas>` elements.
 - **Polling loop** — `setInterval(pollData, 30_000)`; re-renders only when `generated_at` changes.
 
-The single-file design is enforced. CSS that's not in `<style>` and JS that's not in `<script>` doesn't ship.
+Your code stays in this one file. CSS that's not in `<style>` and JS that's not in `<script>` doesn't ship. The only other files it loads are pinned third-party ones in `vendor/`.
 
 ## Data contract
 
@@ -83,12 +84,13 @@ The JSON file written by the analyzer has a stable top-level shape:
 | `totals` | object | Lifetime input/output/cache token counts + cost breakdown + messages. |
 | `pricing` | object | The price table that was used. |
 | `by_day` | array | One entry per day. Includes `effective_tokens` and `by_model` per day. |
-| `by_month` | array | One entry per month. |
+| `by_month` | array | One entry per month, with `active_days`, `active_hours` and `active_projects`. |
 | `by_model` | array | Lifetime model totals. |
 | `by_project` | array | Lifetime per-project totals, sorted by cost. |
 | `by_tool` | array | Lifetime per-tool invocation counts, sorted descending. |
-| `current_block` | object | The active 5-hour window — start time, effective tokens, cost, messages, top tools. |
+| `current_block` | object | The last 5 hours — start time, effective tokens, cost, messages, top tools. |
 | `recent_sessions` | array | Last 40 sessions, most recent first. |
 | `files_scanned` | number | Diagnostic. |
+| `demo` | boolean | Only in demo data. The page shows a notice when it is set. |
 
 If you fork the dashboard and change any of these names, update both `analyzer.py` and the matching field in the render functions in `index.html`.

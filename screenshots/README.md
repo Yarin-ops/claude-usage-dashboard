@@ -1,15 +1,10 @@
 # Screenshots
 
-Screenshots of the dashboard for the main README and for anyone browsing the repo.
+Taken against the demo data (`index.html?demo`), so they contain no personal data.
 
-Planned set (run the dashboard against `examples/demo-data.json` to get clean shots that don't include personal data):
+- `01-hero.png` - top of the page, dark theme
+- `02-light.png` - heatmap and ledger, light theme
+- `03-hebrew.png` - Hebrew and RTL
+- `portfolio-card.jpg` - 16:10 image for a portfolio card
 
-- `hero-light.png` — top of the page, 5-hour ring + heatmap, light theme
-- `hero-dark.png` — same, dark theme
-- `pay-vs-use.png` — the two headline cards side by side
-- `heatmap.png` — close-up of the activity heatmap
-- `hebrew.png` — Hebrew + RTL view
-
-Resolution: 1920×1080 or higher. PNG. Crop tight on the relevant area.
-
-Anything inside `personal/` is gitignored — use that for shots of your real data while iterating.
+Anything inside `personal/` is gitignored. Use that for shots of your real data while iterating.

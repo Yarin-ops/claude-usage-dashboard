@@ -3,450 +3,347 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark light">
 <title>Claude Usage Dashboard</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'><stop offset='0%25' stop-color='%23f472b6'/><stop offset='100%25' stop-color='%238b5cf6'/></linearGradient></defs><circle cx='50' cy='50' r='45' fill='url(%23g)'/><text x='50' y='62' text-anchor='middle' font-size='42' fill='white'>$</text></svg>">
-<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-<script src="https://unpkg.com/lucide@latest"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-<script src="claude-usage-data.js" onerror="window.__CLAUDE_DATA_LOAD_ERR=true"></script>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23050A1F'/><circle cx='16' cy='16' r='9' fill='none' stroke='%231B3BFF' stroke-width='3'/><circle cx='23' cy='10' r='3.4' fill='%236FC6FF'/></svg>">
+<script src="vendor/chart.umd.js"></script>
 <style>
+@font-face { font-family: 'Karantina'; font-weight: 700; font-display: swap; src: url('vendor/fonts/karantina-latin-700-normal.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: 'Karantina'; font-weight: 700; font-display: swap; src: url('vendor/fonts/karantina-hebrew-700-normal.woff2') format('woff2');
+  unicode-range: U+0307-0308, U+0590-05FF, U+200C-2010, U+20AA, U+25CC, U+FB1D-FB4F; }
+@font-face { font-family: 'Heebo'; font-weight: 400; font-display: swap; src: url('vendor/fonts/heebo-latin-400-normal.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: 'Heebo'; font-weight: 500; font-display: swap; src: url('vendor/fonts/heebo-latin-500-normal.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: 'Heebo'; font-weight: 700; font-display: swap; src: url('vendor/fonts/heebo-latin-700-normal.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: 'Heebo'; font-weight: 800; font-display: swap; src: url('vendor/fonts/heebo-latin-800-normal.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: 'Heebo'; font-weight: 400; font-display: swap; src: url('vendor/fonts/heebo-hebrew-400-normal.woff2') format('woff2');
+  unicode-range: U+0307-0308, U+0590-05FF, U+200C-2010, U+20AA, U+25CC, U+FB1D-FB4F; }
+@font-face { font-family: 'Heebo'; font-weight: 500; font-display: swap; src: url('vendor/fonts/heebo-hebrew-500-normal.woff2') format('woff2');
+  unicode-range: U+0307-0308, U+0590-05FF, U+200C-2010, U+20AA, U+25CC, U+FB1D-FB4F; }
+@font-face { font-family: 'Heebo'; font-weight: 700; font-display: swap; src: url('vendor/fonts/heebo-hebrew-700-normal.woff2') format('woff2');
+  unicode-range: U+0307-0308, U+0590-05FF, U+200C-2010, U+20AA, U+25CC, U+FB1D-FB4F; }
+@font-face { font-family: 'Heebo'; font-weight: 800; font-display: swap; src: url('vendor/fonts/heebo-hebrew-800-normal.woff2') format('woff2');
+  unicode-range: U+0307-0308, U+0590-05FF, U+200C-2010, U+20AA, U+25CC, U+FB1D-FB4F; }
+
+@property --p { syntax: '<number>'; inherits: true; initial-value: 0; }
+
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
 :root {
-  --bg: #f8f7fc;
-  --card-bg: #ffffff;
-  --card-border: #ede5f5;
-  --text: #1a1a2e;
-  --text-secondary: #6b7280;
-  --text-muted: #9ca3af;
-  --accent: #8b5cf6;
-  --accent-pink: #ec4899;
-  --accent-light: #f3e8ff;
-  --gradient-nav: linear-gradient(135deg, #0f0a1e 0%, #1e1145 50%, #2d1b69 100%);
-  --good: #10b981;
-  --warn: #f59e0b;
-  --bad:  #ef4444;
-  --opus:   #8b5cf6;
-  --sonnet: #ec4899;
-  --haiku:  #14b8a6;
-  --grid: rgba(139,92,246,0.08);
+  --night: #050A1F; --cobalt: #1B3BFF; --sky: #6FC6FF; --stone: #E8E5DD; --comet: #FFC56F;
+  --out: cubic-bezier(.23, 1, .32, 1);
+  --display: 'Karantina', 'Heebo', sans-serif;
+
+  --bg: #E8E5DD;
+  --surface: #FBFAF6;
+  --line: rgba(11,14,20,.13);
+  --text: #0B0E14;
+  --text-2: #3A3F4A;
+  --text-3: #5A606D;
+  --accent: #1B3BFF;
+  --accent-soft: rgba(27,59,255,.09);
+  --warn: #A85A00;
+  --bar-a: #1B3BFF; --bar-b: #1B3BFF;
+  --track: rgba(11,14,20,.09);
+  --grid: rgba(11,14,20,.08);
+  --cell-cold: rgba(11,14,20,.07);
+  --cell-hot: #1B3BFF;
+  --glow: transparent;
+  --opus: #1B3BFF; --sonnet: #5C8DFF; --haiku: #0E8F7C; --fable: #C96F00; --unknown: #6B7280;
+  --lift: 0 1px 2px rgba(11,14,20,.05), 0 12px 28px -18px rgba(11,14,20,.22);
 }
 [data-theme="dark"] {
-  --bg: #0a0613;
-  --card-bg: #161029;
-  --card-border: #2a1f4a;
-  --text: #f0eaff;
-  --text-secondary: #b5a8d0;
-  --text-muted: #6b6188;
-  --accent-light: #2a1f4a;
-  --grid: rgba(139,92,246,0.15);
+  --bg: #050A1F;
+  --surface: #0A1230;
+  --line: rgba(111,198,255,.15);
+  --text: #EEF3FF;
+  --text-2: #B7C4E0;
+  --text-3: #8F9DBF;
+  --accent: #6FC6FF;
+  --accent-soft: rgba(111,198,255,.12);
+  --warn: #FFC56F;
+  --bar-a: #2B55FF; --bar-b: #6FC6FF;
+  --track: rgba(111,198,255,.1);
+  --grid: rgba(111,198,255,.09);
+  --cell-cold: rgba(111,198,255,.07);
+  --cell-hot: #8FD4FF;
+  --glow: rgba(111,198,255,.65);
+  --opus: #6FC6FF; --sonnet: #3E6BFF; --haiku: #8FE3D0; --fable: #FFC56F; --unknown: #8F9DBF;
+  --lift: 0 1px 0 rgba(111,198,255,.06) inset, 0 18px 40px -24px rgba(0,0,0,.9);
 }
+
+html { -webkit-text-size-adjust: 100%; scrollbar-color: var(--text-3) transparent; }
 body {
-  font-family: 'Heebo', sans-serif;
+  font-family: 'Heebo', -apple-system, sans-serif;
   background: var(--bg);
   color: var(--text);
   min-height: 100vh;
-  position: relative;
   overflow-x: hidden;
+  font-size: 15px;
+  line-height: 1.5;
 }
-body::before {
-  content: ''; position: fixed; inset: 0;
-  background:
-    radial-gradient(ellipse 60% 40% at 20% 10%, rgba(139,92,246,0.06) 0%, transparent 60%),
-    radial-gradient(ellipse 40% 60% at 85% 80%, rgba(236,72,153,0.05) 0%, transparent 60%);
-  pointer-events: none;
-  z-index: 0;
-}
+::selection { background: var(--cobalt); color: #fff; }
+a { color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+.hero :focus-visible, .navbar :focus-visible { outline-color: var(--sky); }
+svg.lucide { width: 1em; height: 1em; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
 
-/* ── Navbar ── */
+/* Nav */
 .navbar {
-  background: var(--gradient-nav);
-  padding: 0 40px;
-  display: flex; align-items: center; justify-content: space-between;
-  height: 64px;
+  background: var(--night);
+  padding: 0 clamp(16px, 3vw, 40px);
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  height: 60px;
   position: sticky; top: 0; z-index: 100;
-  box-shadow: 0 4px 30px rgba(0,0,0,0.2);
-  border-bottom: 1px solid rgba(139,92,246,0.15);
+  color: #EEF3FF;
+  border-bottom: 1px solid rgba(111,198,255,.1);
 }
-.nav-brand { display: flex; align-items: center; gap: 12px; }
-.nav-logo {
-  font-size: 1.4rem; font-weight: 900;
-  background: linear-gradient(135deg, #f472b6, #c084fc, #60a5fa);
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-  background-clip: text; letter-spacing: -0.5px;
-}
-.nav-logo-icon {
-  width: 38px; height: 38px; border-radius: 12px;
-  background: linear-gradient(135deg, #ec4899, #8b5cf6);
-  display: flex; align-items: center; justify-content: center;
-  color: white;
-  box-shadow: 0 2px 12px rgba(139,92,246,0.4);
-}
-.nav-logo-icon i { width: 22px; height: 22px; stroke-width: 2.5; }
-.nav-actions { display: flex; gap: 8px; align-items: center; }
+.nav-brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 1.05rem; letter-spacing: -.01em; white-space: nowrap; }
+.nav-brand svg { width: 28px; height: 28px; flex-shrink: 0; }
+.nav-actions { display: flex; gap: 6px; align-items: center; }
 .nav-btn {
-  padding: 8px 14px; border-radius: 10px;
-  background: rgba(255,255,255,0.08);
-  border: 1px solid rgba(255,255,255,0.12);
-  color: rgba(255,255,255,0.85);
-  font-size: 0.85rem; font-weight: 500;
-  cursor: pointer; transition: all 0.2s;
-  display: inline-flex; align-items: center; gap: 6px;
-  text-decoration: none;
-  font-family: inherit;
+  height: 36px; padding: 0 12px; border-radius: 9px;
+  background: transparent; border: 1px solid rgba(111,198,255,.18);
+  color: rgba(238,243,255,.88);
+  font: 500 .86rem 'Heebo', sans-serif;
+  cursor: pointer; transition: background .2s var(--out), color .2s var(--out), border-color .2s var(--out);
+  display: inline-flex; align-items: center; gap: 7px; text-decoration: none;
 }
-.nav-btn:hover { background: rgba(255,255,255,0.15); color: #fff; }
-.nav-btn i { width: 16px; height: 16px; }
-.nav-btn.lang-btn { font-weight: 700; min-width: 50px; justify-content: center; }
+.nav-btn:hover { background: rgba(111,198,255,.12); border-color: rgba(111,198,255,.34); color: #fff; }
+.nav-btn svg.lucide { font-size: 16px; }
+.nav-btn.lang-btn { font-weight: 700; min-width: 42px; justify-content: center; }
 
-/* ── Layout ── */
-.container { max-width: 1400px; margin: 0 auto; padding: 32px 40px 80px; position: relative; z-index: 1; }
-[dir="rtl"] .container { direction: rtl; text-align: right; }
-
-.page-header {
-  display: flex; align-items: flex-end; justify-content: space-between;
-  flex-wrap: wrap; gap: 16px; margin-bottom: 28px;
-}
-.page-title { font-size: 2.2rem; font-weight: 900; letter-spacing: -1px; }
-.page-title span {
-  background: linear-gradient(135deg, var(--accent), var(--accent-pink));
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-}
-.page-sub { color: var(--text-secondary); font-size: 0.95rem; margin-top: 6px; }
-.generated { color: var(--text-muted); font-size: 0.8rem; }
-
-/* ── Headline cards ── */
-.split {
-  display: grid; grid-template-columns: 1fr 1fr;
-  gap: 16px; margin-bottom: 16px;
-}
-.headline-card {
-  background: var(--card-bg);
-  border: 1px solid var(--card-border);
-  border-radius: 20px;
-  padding: 26px;
+/* Hero: always night, in both themes */
+.hero {
+  --hero-text: #EEF3FF; --hero-2: #B7C4E0; --hero-3: #93A2C4;
   position: relative;
+  background: var(--night);
+  color: var(--hero-text);
   overflow: hidden;
+  isolation: isolate;
 }
-.headline-card.pay::before {
-  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
-  background: linear-gradient(90deg, #f97316, #ec4899);
+.hero::after {
+  content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none; opacity: .09; mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
-.headline-card.use::before {
-  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
-  background: linear-gradient(90deg, #8b5cf6, #14b8a6);
+.hero-in {
+  max-width: 1320px; margin: 0 auto;
+  padding: clamp(28px, 4.2vw, 56px) clamp(16px, 3vw, 40px) clamp(28px, 3.4vw, 44px);
+  display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(300px, .7fr);
+  gap: clamp(24px, 4vw, 64px); align-items: center;
 }
-.headline-label {
-  font-size: 0.78rem; color: var(--text-secondary);
-  font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;
-  display: flex; align-items: center; gap: 8px;
+.statement {
+  font: 700 clamp(62px, 8.2vw, 124px)/.94 var(--display);
+  letter-spacing: -.005em;
+  text-wrap: balance;
 }
-[dir="rtl"] .headline-label { text-transform: none; letter-spacing: normal; }
-.headline-label i { width: 16px; height: 16px; color: var(--accent); }
-.headline-value {
-  font-size: 2.6rem; font-weight: 900; letter-spacing: -1.5px;
-  margin-top: 4px;
-}
-.headline-value .unit { font-size: 1rem; color: var(--text-secondary); font-weight: 600; margin-left: 4px; }
-.headline-sub { color: var(--text-secondary); font-size: 0.9rem; margin-top: 6px; }
+.statement span { display: block; }
+.statement b { font-weight: 700; }
+.statement .pay { color: var(--stone); }
+.statement .use { color: var(--sky); text-shadow: 0 0 44px rgba(62,140,255,.75); }
+.hero-note { color: var(--hero-2); font-size: clamp(.95rem, 1.2vw, 1.06rem); line-height: 1.6; margin-top: 18px; max-width: 62ch; }
+.hero-stats { display: flex; flex-wrap: wrap; gap: 14px clamp(20px, 3vw, 40px); margin-top: 26px; padding-top: 18px; border-top: 1px solid rgba(111,198,255,.16); }
+.hero-stats .v { font-size: 1.5rem; font-weight: 700; letter-spacing: -.02em; font-variant-numeric: tabular-nums; line-height: 1.2; }
+.hero-stats .v small { font-size: .9rem; font-weight: 500; color: var(--hero-3); letter-spacing: 0; }
+.hero-stats .l { color: var(--hero-3); font-size: .82rem; }
+.status { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; margin-top: 20px; font-size: .82rem; color: var(--hero-3); }
+.live-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--sky); margin-inline-end: 7px; vertical-align: 1px; animation: pulse-live 1.8s ease-in-out infinite; }
+@keyframes pulse-live { 0%, 100% { box-shadow: 0 0 0 0 rgba(111,198,255,.55); } 50% { box-shadow: 0 0 0 6px rgba(111,198,255,0); } }
+.demo-chip { color: var(--comet); font-weight: 500; }
+.stale-note { color: var(--comet); }
 
-.line-items { margin-top: 18px; border-top: 1px solid var(--card-border); padding-top: 14px; }
-.line { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; font-size: 0.92rem; gap: 12px; }
-.line + .line { border-top: 1px dashed var(--card-border); }
-.line-name { display: flex; align-items: center; gap: 10px; color: var(--text); flex: 1; min-width: 0; }
-.line-name .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-.line-name > div { min-width: 0; }
-.line-detail { color: var(--text-muted); font-size: 0.78rem; }
-.line-val { font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
-.line.muted .line-val { color: var(--text-muted); font-weight: 500; }
+/* The 5-hour orbit */
+.orbit-col { position: relative; display: flex; flex-direction: column; align-items: center; min-width: 0; }
+.orbit-stage { position: relative; width: min(100%, 280px); aspect-ratio: 1; }
+.orbit-lines { position: absolute; left: 50%; top: 50%; width: 1500px; height: 1500px; margin: -750px 0 0 -750px; z-index: -1; pointer-events: none; overflow: visible; }
+.orbit-lines ellipse { fill: none; stroke: rgba(111,198,255,.15); stroke-width: 1; }
+.orbit-halo { position: absolute; left: 50%; top: 50%; width: 900px; height: 900px; margin: -450px 0 0 -450px; z-index: -1; pointer-events: none;
+  background: radial-gradient(closest-side, rgba(62,140,255,.5), rgba(27,59,255,.2) 42%, rgba(5,10,31,0) 72%); }
+.orbit {
+  --p: var(--to);
+  position: absolute; inset: 0; border-radius: 50%;
+}
+.orbit.sweep { animation: sweep 1.5s var(--out) both; }
+@keyframes sweep { from { --p: 0; } }
+.orbit-track, .orbit-tail { position: absolute; inset: 0; border-radius: 50%;
+  -webkit-mask: radial-gradient(closest-side, transparent calc(100% - 13px), #000 calc(100% - 12px), #000 calc(100% - 1px), transparent);
+          mask: radial-gradient(closest-side, transparent calc(100% - 13px), #000 calc(100% - 12px), #000 calc(100% - 1px), transparent); }
+.orbit-track { background: rgba(111,198,255,.13); }
+.orbit-tail { background: conic-gradient(from 0deg, rgba(27,59,255,.12) 0%, var(--cobalt) calc(var(--p) * .45%), var(--tail, var(--sky)) calc(var(--p) * 1%), transparent calc(var(--p) * 1%)); }
+.orbit-head-wrap { position: absolute; inset: 0; transform: rotate(calc(var(--p) * 3.6deg)); }
+.orbit-head {
+  position: absolute; left: 50%; top: 0; width: 22px; height: 22px; margin: -5px 0 0 -11px; border-radius: 50%;
+  background: #fff; box-shadow: 0 0 10px 3px var(--tail, var(--sky)), 0 0 34px 10px rgba(62,140,255,.55);
+}
+.orbit.over { --tail: var(--comet); }
+.orbit-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+.orbit-center .v { font: 700 clamp(64px, 7vw, 92px)/.9 var(--display); }
+.orbit-center .l { color: var(--hero-2); font-size: .84rem; margin-top: 4px; }
+.orbit-info { width: 100%; max-width: 380px; margin-top: 20px; }
+.orbit-title { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-weight: 700; font-size: 1rem; }
+.orbit-title > span:first-child { display: inline-flex; align-items: center; gap: 8px; }
+.orbit-title svg.lucide { font-size: 16px; color: var(--sky); }
+.orbit-stats { display: grid; grid-template-columns: repeat(4, auto); justify-content: space-between; gap: 8px 14px; margin-top: 10px; }
+.orbit-stats .v { font-weight: 700; font-size: 1rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.orbit-stats .l { color: var(--hero-3); font-size: .75rem; }
+.chips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 12px; }
+.chip { background: rgba(111,198,255,.1); color: var(--hero-2); padding: 2px 9px; border-radius: 999px; font-size: .76rem; font-weight: 500; white-space: nowrap; }
 
-/* inline-edit price */
-.price-edit {
-  display: inline-flex; align-items: baseline; gap: 4px;
-  padding: 2px 8px; border-radius: 6px;
-  background: var(--accent-light); color: var(--accent);
-  cursor: pointer; font-weight: 700;
-  border: 1px dashed transparent;
-}
-.price-edit:hover { border-color: var(--accent); }
-.price-edit input {
-  background: transparent; border: none; outline: none;
-  font-weight: 700; font-family: inherit; font-size: inherit; color: inherit;
-  width: 60px; text-align: right;
-}
-.price-edit.empty { color: var(--text-muted); background: transparent; border: 1px dashed var(--card-border); }
-
-/* ── Reality banner ── */
-.reality {
-  background: var(--card-bg);
-  border: 1px solid var(--card-border);
-  border-left: 4px solid var(--warn);
-  padding: 18px 22px;
-  border-radius: 14px;
-  margin-bottom: 28px;
-  font-size: 0.95rem;
-  color: var(--text-secondary);
-  line-height: 1.55;
-}
-[dir="rtl"] .reality { border-left: 1px solid var(--card-border); border-right: 4px solid var(--warn); }
-.reality strong { color: var(--text); }
-
-/* ── KPIs ── */
-.kpi-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 14px;
-  margin-bottom: 28px;
-}
-.kpi {
-  background: var(--card-bg);
-  border: 1px solid var(--card-border);
-  border-radius: 16px;
-  padding: 18px;
-}
-.kpi-label {
-  display: flex; align-items: center; gap: 6px;
-  font-size: 0.74rem; color: var(--text-secondary);
-  font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
-}
-[dir="rtl"] .kpi-label { text-transform: none; letter-spacing: normal; }
-.kpi-label i { width: 14px; height: 14px; }
-.kpi-value { font-size: 1.7rem; font-weight: 800; margin-top: 6px; letter-spacing: -1px; }
-.kpi-sub { font-size: 0.78rem; color: var(--text-muted); margin-top: 2px; }
-
-/* ── Cards ── */
-.card {
-  background: var(--card-bg);
-  border: 1px solid var(--card-border);
-  border-radius: 18px;
-  padding: 22px;
-  margin-bottom: 16px;
-}
-.card-head {
-  display: flex; justify-content: space-between; align-items: center;
-  margin-bottom: 16px; gap: 12px; flex-wrap: wrap;
-}
-.card-title {
-  font-size: 1.02rem; font-weight: 700; letter-spacing: -0.3px;
-  display: flex; align-items: center; gap: 10px;
-}
-.card-title i { width: 18px; height: 18px; color: var(--accent); }
-.card-sub { color: var(--text-secondary); font-size: 0.82rem; }
-
-.scope-toggle { display: inline-flex; background: var(--accent-light); border-radius: 8px; padding: 3px; }
-.scope-toggle button {
-  background: none; border: none; padding: 5px 12px;
-  font-size: 0.78rem; font-weight: 600; color: var(--text-secondary);
-  cursor: pointer; border-radius: 6px;
-  font-family: inherit;
-}
-.scope-toggle button.active { background: var(--card-bg); color: var(--accent); box-shadow: 0 1px 4px rgba(0,0,0,0.05); }
-
-/* ── 5h block ── */
-.block5 {
-  display: grid; grid-template-columns: 180px 1fr; gap: 24px;
-  background: var(--card-bg); border: 1px solid var(--card-border);
-  border-radius: 18px; padding: 22px; margin-bottom: 16px;
-  align-items: center;
-}
-@media (max-width: 780px) { .block5 { grid-template-columns: 1fr; } }
-.block5-ring { display: flex; justify-content: center; align-items: center; position: relative; }
-.block5-ring svg { transform: rotate(-90deg); }
-.block5-ring-track { fill: none; stroke: var(--card-border); stroke-width: 14; }
-.block5-ring-fill  { fill: none; stroke: url(#block5grad); stroke-width: 14; stroke-linecap: round;
-                      transition: stroke-dashoffset 600ms ease; }
-.block5-center {
-  position: absolute; inset: 0; display: flex; flex-direction: column;
-  justify-content: center; align-items: center; text-align: center;
-}
-.block5-center .v { font-size: 1.35rem; font-weight: 800; letter-spacing: -1px; }
-.block5-center .l { font-size: 0.66rem; color: var(--text-muted); margin-top: 2px;
-                     text-transform: uppercase; letter-spacing: 0.4px; }
-[dir="rtl"] .block5-center .l { text-transform: none; letter-spacing: normal; }
-.block5-info .b5-title { font-size: 1.02rem; font-weight: 700; display: flex;
-                           align-items: center; gap: 10px; }
-.block5-info .b5-title i { width: 18px; height: 18px; color: var(--accent); }
-.block5-info .b5-sub { color: var(--text-secondary); font-size: 0.82rem; margin-top: 4px; }
-.block5-stats { display: flex; gap: 22px; margin-top: 16px; flex-wrap: wrap; }
-.block5-stat .s-l { font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;
-                     letter-spacing: 0.4px; }
-[dir="rtl"] .block5-stat .s-l { text-transform: none; letter-spacing: normal; }
-.block5-stat .s-v { font-size: 1.2rem; font-weight: 700; font-variant-numeric: tabular-nums; }
-.block5-tools { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--card-border);
-                  font-size: 0.85rem; color: var(--text-secondary); }
-.block5-tools .t-chip { display: inline-block; background: var(--accent-light);
-                          color: var(--accent); padding: 3px 9px; border-radius: 10px;
-                          margin: 2px 4px 2px 0; font-weight: 600; font-size: 0.78rem; }
-
-/* live pulse next to "generated" */
-.live-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%;
-            background: #10b981; margin-right: 6px;
-            animation: pulse-live 1.6s ease-in-out infinite; vertical-align: middle; }
-[dir="rtl"] .live-dot { margin-right: 0; margin-left: 6px; }
-@keyframes pulse-live {
-  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(16,185,129,0.5); }
-  50%      { opacity: 0.6; box-shadow: 0 0 0 6px rgba(16,185,129,0); }
-}
-
-/* ── Tool bars ── */
-.tool-rows { display: flex; flex-direction: column; gap: 8px; }
-.tool-row { display: grid; grid-template-columns: 1fr 60px; gap: 12px;
-              align-items: center; }
-.tool-row .tr-name { font-size: 0.88rem; font-weight: 600; color: var(--text);
-                       overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.tool-row .tr-bar  { grid-column: 1 / -1; height: 6px; border-radius: 3px;
-                       background: var(--card-border); overflow: hidden; margin-top: -2px; }
-.tool-row .tr-bar-fill { height: 100%; background: linear-gradient(90deg, #8b5cf6, #ec4899);
-                            border-radius: 3px; }
-.tool-row .tr-count { font-size: 0.86rem; font-weight: 700; text-align: right;
-                        font-variant-numeric: tabular-nums; color: var(--text-secondary); }
-[dir="rtl"] .tool-row .tr-count { text-align: left; }
-
-/* ── Heatmap ── */
-.heatmap-wrap { overflow-x: auto; padding: 4px 2px; }
-.heatmap-grid {
-  display: inline-grid;
-  grid-auto-flow: column;
-  grid-template-rows: 12px repeat(7, 12px);
-  gap: 3px;
-  padding-top: 16px;
-  position: relative;
-}
-.heatmap-cell {
-  width: 12px; height: 12px; border-radius: 2px;
-  background: var(--card-border);
-  transition: transform 120ms ease;
-}
-.heatmap-cell:hover { transform: scale(1.5); outline: 1px solid var(--accent); }
-.heatmap-label-month {
-  font-size: 0.7rem; color: var(--text-muted);
-  font-weight: 600; text-align: left;
-  grid-row: 1;
-}
-.heatmap-legend {
-  display: flex; justify-content: space-between; align-items: center;
-  margin-top: 14px; font-size: 0.78rem; color: var(--text-muted);
-}
-.heatmap-legend-scale { display: flex; align-items: center; gap: 4px; }
-.heatmap-legend-scale .heatmap-cell { width: 12px; height: 12px; }
-
-/* WoW delta chip */
-.wow-chip {
-  display: inline-flex; align-items: center; gap: 4px;
-  padding: 3px 8px; border-radius: 999px;
-  font-size: 0.78rem; font-weight: 700; line-height: 1;
-  background: var(--accent-light); color: var(--accent);
-}
-.wow-chip.up   { background: rgba(16,185,129,0.15); color: #10b981; }
-.wow-chip.down { background: rgba(239,68,68,0.15);  color: #ef4444; }
-.wow-chip i { width: 12px; height: 12px; }
-
-/* Limits panel button */
+.limit-wrap { position: relative; }
 .limit-edit {
-  background: transparent; border: 1px dashed var(--card-border);
-  color: var(--text-muted); cursor: pointer; padding: 4px 8px;
-  border-radius: 6px; font-size: 0.72rem; font-family: inherit;
-  display: inline-flex; align-items: center; gap: 4px;
+  background: transparent; border: 1px dashed rgba(111,198,255,.34); color: var(--hero-2); cursor: pointer;
+  padding: 3px 9px; border-radius: 7px; font: 500 .76rem 'Heebo', sans-serif;
+  display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;
+  transition: border-color .2s var(--out), color .2s var(--out);
 }
-.limit-edit:hover { border-color: var(--accent); color: var(--accent); }
-.limit-edit i { width: 12px; height: 12px; }
+.limit-edit:hover { border-color: var(--sky); color: #fff; }
+.limit-edit svg.lucide { font-size: 12px; color: inherit; }
 .limit-popover {
-  position: absolute; top: 100%; right: 0; margin-top: 6px;
-  background: var(--card-bg); border: 1px solid var(--card-border);
-  border-radius: 10px; padding: 14px; min-width: 240px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-  z-index: 50;
+  position: absolute; bottom: calc(100% + 8px); inset-inline-end: 0; z-index: 50; width: 260px;
+  background: #0E1838; border: 1px solid rgba(111,198,255,.28); color: var(--hero-text);
+  border-radius: 12px; padding: 14px; box-shadow: 0 24px 50px -16px rgba(0,0,0,.9);
+  font-weight: 400;
 }
-[dir="rtl"] .limit-popover { right: auto; left: 0; }
-.limit-popover label { display: block; font-size: 0.75rem;
-                         color: var(--text-secondary); font-weight: 600;
-                         margin-bottom: 6px; }
-.limit-popover input {
-  width: 100%; padding: 8px 10px; font-size: 0.92rem;
-  border: 1px solid var(--card-border); border-radius: 6px;
-  background: var(--bg); color: var(--text); font-family: inherit;
-}
-.limit-popover .preset-row { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
-.limit-popover .preset {
-  flex: 1; padding: 6px 8px; font-size: 0.74rem;
-  border: 1px solid var(--card-border); border-radius: 6px;
-  background: transparent; color: var(--text-secondary);
-  cursor: pointer; font-family: inherit; font-weight: 600;
-}
-.limit-popover .preset:hover { border-color: var(--accent); color: var(--accent); }
-.block5-ring { position: relative; }
+.limit-popover label { display: block; font-size: .78rem; color: var(--hero-2); margin-bottom: 8px; line-height: 1.4; }
+.limit-popover input { width: 100%; padding: 8px 10px; font: 500 .92rem 'Heebo', sans-serif; border: 1px solid rgba(111,198,255,.28); border-radius: 7px; background: var(--night); color: var(--hero-text); }
+.preset-row { display: flex; gap: 5px; margin-top: 9px; }
+.preset { flex: 1; padding: 5px 4px; font: 700 .74rem 'Heebo', sans-serif; border: 1px solid rgba(111,198,255,.2); border-radius: 6px; background: transparent; color: var(--hero-2); cursor: pointer; }
+.preset:hover { border-color: var(--sky); color: #fff; }
+.preset.save { flex: none; display: block; margin-top: 10px; margin-inline-start: auto; padding: 6px 16px; background: var(--cobalt); border-color: var(--cobalt); color: #fff; }
+.preset.save:hover { background: #3556ff; border-color: #3556ff; }
 
-.grid-2 { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; margin-bottom: 16px; }
+/* Page body */
+.container { max-width: 1320px; margin: 0 auto; padding: clamp(16px, 2vw, 24px) clamp(16px, 3vw, 40px) 48px; display: grid; gap: 16px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: clamp(16px, 2vw, 24px); box-shadow: var(--lift); min-width: 0; }
+.card-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 16px; gap: 6px 14px; flex-wrap: wrap; }
+.card-title { font-size: 1.05rem; font-weight: 700; letter-spacing: -.01em; display: flex; align-items: center; gap: 9px; }
+.card-title svg.lucide { font-size: 17px; color: var(--accent); align-self: center; }
+.card-sub { color: var(--text-3); font-size: .84rem; }
+.split { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 
-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
-[dir="rtl"] table th, [dir="rtl"] table td { text-align: right; }
-th {
-  text-align: left; padding: 8px 10px;
-  font-size: 0.72rem; font-weight: 600; text-transform: uppercase;
-  color: var(--text-secondary); letter-spacing: 0.5px;
-  border-bottom: 1px solid var(--card-border);
+/* Sky: the activity heatmap */
+.sky-card { display: grid; grid-template-columns: minmax(0, 1fr) 230px; gap: clamp(20px, 3vw, 40px); }
+.heatmap { display: grid; grid-template-columns: repeat(26, minmax(0, 1fr)); gap: clamp(2px, .32vw, 4px); }
+.hm-month { font-size: .74rem; color: var(--text-3); font-weight: 500; white-space: nowrap; height: 18px; grid-row: 1; }
+.hm-cell {
+  aspect-ratio: 1; border-radius: 22%;
+  background: color-mix(in srgb, var(--cell-hot) calc(var(--t, 0) * 100%), var(--cell-cold));
+  transition: transform .12s var(--out);
 }
-[dir="rtl"] th { text-transform: none; letter-spacing: normal; }
-td { padding: 10px; border-bottom: 1px solid var(--card-border); }
-tr:last-child td { border-bottom: none; }
-tr:hover td { background: var(--accent-light); }
-td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
-[dir="rtl"] td.num, [dir="rtl"] th.num { text-align: left; }
-td.label { font-weight: 600; }
+.hm-cell.hot { box-shadow: 0 0 calc(var(--t) * 14px) var(--glow); }
+.hm-cell.future { background: transparent; }
+.hm-cell:not(.future):hover { transform: scale(1.35); }
+.hm-legend { display: flex; justify-content: flex-end; align-items: center; gap: 4px; margin-top: 12px; font-size: .76rem; color: var(--text-3); }
+.hm-legend .hm-cell { width: 11px; }
+.hm-legend span:first-child { margin-inline-end: 3px; }
+.hm-legend span:last-child { margin-inline-start: 3px; }
+.facts { display: flex; flex-direction: column; justify-content: center; }
+.fact { padding: 12px 0; }
+.fact + .fact { border-top: 1px solid var(--line); }
+.fact .v { font-size: 1.45rem; font-weight: 700; letter-spacing: -.02em; line-height: 1.2; font-variant-numeric: tabular-nums; text-transform: capitalize; }
+.fact .l { color: var(--text-3); font-size: .82rem; }
 
-.pill {
-  display: inline-flex; align-items: center; gap: 5px;
-  padding: 3px 9px; border-radius: 999px;
-  font-size: 0.72rem; font-weight: 600;
+/* Ledger */
+.line { display: flex; justify-content: space-between; align-items: center; padding: 11px 0; gap: 14px; }
+.line + .line { border-top: 1px solid var(--line); }
+.line-name { min-width: 0; }
+.line-name .n { font-weight: 500; }
+.line-detail { color: var(--text-3); font-size: .8rem; }
+.line-val { font-weight: 700; font-size: 1.05rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.line.muted .line-val { color: var(--text-2); font-weight: 500; }
+.ledger-total { font-size: 2rem; font-weight: 800; letter-spacing: -.03em; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.ledger-total small { font-size: .9rem; font-weight: 500; color: var(--text-3); letter-spacing: 0; }
+.ledger-group { margin-top: 14px; font-size: .8rem; font-weight: 700; color: var(--text-2); }
+.notice { margin-top: 12px; padding: 10px 12px; border-radius: 9px; background: color-mix(in srgb, var(--warn) 12%, transparent); color: var(--text); font-size: .87rem; }
+.price-edit {
+  display: inline-flex; align-items: baseline; gap: 2px; padding: 3px 9px; border-radius: 8px;
+  background: var(--accent-soft); color: var(--accent); border: 1px dashed color-mix(in srgb, var(--accent) 45%, transparent); cursor: text;
+  transition: border-color .2s var(--out);
 }
-.pill.opus     { background: rgba(139,92,246,0.13); color: var(--opus); }
-.pill.sonnet   { background: rgba(236,72,153,0.13); color: var(--sonnet); }
-.pill.haiku    { background: rgba(20,184,166,0.13); color: var(--haiku); }
-.pill.unknown  { background: rgba(156,163,175,0.13); color: #6b7280; }
-.pill.openai   { background: rgba(16,185,129,0.13); color: #059669; }
-.pill.anthropic{ background: rgba(139,92,246,0.13); color: var(--opus); }
-.pill.kolbo    { background: rgba(245,158,11,0.13); color: var(--warn); }
+.price-edit:hover, .price-edit:focus-within { border-color: var(--accent); }
+.price-edit input { background: transparent; border: 0; outline: 0; font: 700 1rem 'Heebo', sans-serif; color: inherit; width: 58px; text-align: end; -moz-appearance: textfield; font-variant-numeric: tabular-nums; }
+.price-edit input::-webkit-outer-spin-button, .price-edit input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.price-edit input::placeholder { color: var(--text-3); font-weight: 400; }
+.price-edit.empty { width: auto; }
+.price-edit.empty input { width: 118px; }
+.billing-link { font-size: .74rem; color: var(--text-3); margin-inline-start: 8px; font-weight: 400; }
+
+.ledger { display: flex; flex-direction: column; }
+.compare { margin-top: auto; padding-top: 18px; display: grid; gap: 10px; }
+.compare-row { display: grid; grid-template-columns: minmax(0, 40%) minmax(0, 1fr) 72px; align-items: center; gap: 12px; font-size: .88rem; }
+.compare-l { color: var(--text-2); }
+.compare .bar-track { height: 10px; }
+.bar-fill.plain, [dir="rtl"] .bar-fill.plain { background: var(--text-3); }
+
+/* Toggle + delta */
+.scope-toggle { display: inline-flex; background: var(--accent-soft); border-radius: 9px; padding: 3px; }
+.scope-toggle button { background: none; border: 0; padding: 5px 12px; font: 500 .8rem 'Heebo', sans-serif; color: var(--text-2); cursor: pointer; border-radius: 7px; transition: color .2s var(--out); }
+.scope-toggle button:hover { color: var(--text); }
+.scope-toggle button.active { background: var(--surface); color: var(--accent); font-weight: 700; box-shadow: 0 1px 4px rgba(0,0,0,.12); }
+.wow-chip { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 999px; font-size: .76rem; font-weight: 700; background: var(--accent-soft); color: var(--accent); font-variant-numeric: tabular-nums; letter-spacing: 0; }
+.wow-chip.down { color: var(--warn); background: color-mix(in srgb, var(--warn) 14%, transparent); }
+.wow-chip svg.lucide { font-size: 12px; color: inherit; }
+
+/* Bars */
+.bar-row { display: grid; grid-template-columns: minmax(0, 36%) minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 7px 0; font-size: .9rem; }
+.bar-row + .bar-row { border-top: 1px solid var(--line); }
+.bn { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bv { font-weight: 700; font-variant-numeric: tabular-nums; text-align: end; white-space: nowrap; }
+.bv small { color: var(--text-3); font-weight: 400; font-size: .78rem; margin-inline-end: 8px; }
+.bar-track { height: 6px; background: var(--track); border-radius: 99px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 99px; background: linear-gradient(to right, var(--bar-a), var(--bar-b)); }
+[dir="rtl"] .bar-fill { background: linear-gradient(to left, var(--bar-a), var(--bar-b)); margin-inline-start: 0; }
+
+/* Tables */
+.table-wrap { overflow-x: auto; margin: 0 calc(clamp(16px, 2vw, 24px) * -1); padding: 0 clamp(16px, 2vw, 24px); }
+table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+th { text-align: start; padding: 8px 10px; font-size: .78rem; font-weight: 700; color: var(--text-2); border-bottom: 1px solid var(--line); white-space: nowrap; }
+td { padding: 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+tr:last-child td { border-bottom: 0; }
+tbody tr:hover td { background: var(--accent-soft); }
+td.num, th.num { text-align: end; font-variant-numeric: tabular-nums; }
+td.label { font-weight: 500; max-width: 340px; overflow: hidden; text-overflow: ellipsis; }
+code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .86em; background: var(--accent-soft); padding: 2px 7px; border-radius: 6px; color: var(--accent); direction: ltr; unicode-bidi: isolate; white-space: nowrap; }
+.pill { display: inline-flex; align-items: center; padding: 2px 9px; border-radius: 999px; font-size: .76rem; font-weight: 700; text-transform: capitalize; color: color-mix(in srgb, var(--c, var(--unknown)) 72%, var(--text)); background: color-mix(in srgb, var(--c, var(--unknown)) 15%, transparent); }
+.pill.opus { --c: var(--opus); } .pill.sonnet { --c: var(--sonnet); } .pill.haiku { --c: var(--haiku); } .pill.fable { --c: var(--fable); }
 
 .chart-wrap { position: relative; height: 280px; }
-.chart-wrap.short { height: 220px; }
+.chart-wrap.short { height: 230px; }
 
-.bar-row { display: flex; align-items: center; gap: 10px; padding: 7px 0; font-size: 0.88rem; }
-.bar-row + .bar-row { border-top: 1px solid var(--card-border); }
-.bar-row .bn { flex: 0 0 38%; font-weight: 600; }
-.bar-row .bv { flex: 0 0 80px; text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; }
-.bar-row .bm { flex: 0 0 80px; text-align: right; font-size: 0.78rem; color: var(--text-muted); }
-[dir="rtl"] .bar-row .bv, [dir="rtl"] .bar-row .bm { text-align: left; }
-.bar-track { flex: 1; height: 8px; background: var(--accent-light); border-radius: 4px; overflow: hidden; }
-.bar-fill  { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-pink)); border-radius: 4px; }
+.footer { color: var(--text-3); font-size: .82rem; padding: 16px 0 0; text-align: center; line-height: 1.8; }
 
-.footer {
-  text-align: center; color: var(--text-muted); font-size: 0.82rem;
-  padding: 28px 0; border-top: 1px solid var(--card-border); margin-top: 40px;
-}
-.footer code {
-  background: var(--accent-light); padding: 2px 8px; border-radius: 6px;
-  color: var(--accent); font-size: 0.85rem;
-}
-.loading, .error { text-align: center; padding: 60px 20px; color: var(--text-secondary); }
-.error { color: var(--bad); }
+/* Loading + first run */
+.boot { min-height: 60vh; display: grid; place-items: center; background: var(--night); color: #B7C4E0; }
+.boot svg.lucide { font-size: 26px; animation: spin 1s linear infinite; }
+.empty { background: var(--night); color: #EEF3FF; min-height: calc(100vh - 60px); display: grid; place-items: center; padding: 40px 20px; text-align: center; }
+.empty h1 { font: 700 clamp(56px, 8vw, 96px)/.95 var(--display); }
+.empty p { color: #B7C4E0; margin-top: 16px; font-size: 1.02rem; }
+.empty code { background: rgba(111,198,255,.12); color: var(--sky); padding: 4px 10px; }
+.empty a { display: inline-block; margin-top: 22px; padding: 10px 20px; border-radius: 10px; background: var(--cobalt); color: #fff; font-weight: 700; text-decoration: none; transition: background .2s var(--out); }
+.empty a:hover { background: #3556ff; }
 
-.help-icon {
-  display: inline-flex; align-items: center; justify-content: center;
-  width: 14px; height: 14px; margin-left: 4px;
-  color: var(--text-muted); cursor: help;
-}
-[dir="rtl"] .help-icon { margin-left: 0; margin-right: 4px; }
-
-@media (max-width: 900px) {
-  .container { padding: 20px; }
+@media (max-width: 980px) {
+  .hero-in { grid-template-columns: 1fr; }
+  .sky-card { grid-template-columns: 1fr; }
+  .facts { flex-direction: row; flex-wrap: wrap; gap: 0 24px; }
+  .fact + .fact { border-top: 0; }
   .split { grid-template-columns: 1fr; }
-  .kpi-grid { grid-template-columns: 1fr 1fr; }
-  .grid-2 { grid-template-columns: 1fr; }
-  .page-title { font-size: 1.6rem; }
 }
-@media (max-width: 540px) {
-  .kpi-grid { grid-template-columns: 1fr; }
+@media (max-width: 620px) {
   .nav-btn span { display: none; }
+  .nav-btn { padding: 0 10px; }
+  .nav-btn.lang-btn { min-width: 38px; }
+  .orbit-stats { grid-template-columns: repeat(2, auto); }
+  .bar-row { grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; }
+  .bar-row .bar-track { grid-column: 1 / -1; grid-row: 2; }
+  .hm-month { font-size: .66rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 </style>
@@ -455,245 +352,220 @@ td.label { font-weight: 600; }
 
 <nav class="navbar">
   <div class="nav-brand">
-    <div class="nav-logo-icon"><i data-lucide="activity"></i></div>
-    <div class="nav-logo">Claude Usage</div>
+    <svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="10.5" fill="none" stroke="#1B3BFF" stroke-width="3.4"/><circle cx="24" cy="9" r="4" fill="#6FC6FF"/></svg>
+    <span>Claude Usage</span>
   </div>
   <div class="nav-actions">
-    <a class="nav-btn" href="https://github.com/Yarin-ops/claude-usage-dashboard" target="_blank" rel="noopener"><i data-lucide="github"></i><span>GitHub</span></a>
-    <button class="nav-btn lang-btn" id="langBtn">עב</button>
-    <button class="nav-btn" id="themeBtn"><i data-lucide="moon"></i><span>Theme</span></button>
-    <button class="nav-btn" id="refreshBtn"><i data-lucide="refresh-cw"></i><span>Refresh</span></button>
+    <a class="nav-btn" href="https://github.com/Yarin-ops/claude-usage-dashboard" target="_blank" rel="noopener" aria-label="GitHub"><i data-lucide="github"></i><span>GitHub</span></a>
+    <button class="nav-btn lang-btn" id="langBtn" type="button">עב</button>
+    <button class="nav-btn" id="themeBtn" type="button"><i data-lucide="moon"></i><span id="themeLabel">Theme</span></button>
+    <button class="nav-btn" id="refreshBtn" type="button"><i data-lucide="refresh-cw"></i><span id="refreshLabel">Refresh</span></button>
   </div>
 </nav>
 
-<div class="container">
-  <div id="content" class="loading">
-    <i data-lucide="loader" style="width:24px;height:24px;animation:spin 1s linear infinite;"></i>
-    <div style="margin-top:12px;">Loading…</div>
-  </div>
-</div>
+<div id="content" class="boot"><i data-lucide="loader"></i></div>
 
 <script>
+/* ───────────────────────── Icons (Lucide, ISC licensed, inlined so the page works offline) ───────────────────────── */
+const ICONS = {"cpu":"<rect width=\"16\" height=\"16\" x=\"4\" y=\"4\" rx=\"2\" /><rect width=\"6\" height=\"6\" x=\"9\" y=\"9\" rx=\"1\" /><path d=\"M15 2v2\" /><path d=\"M15 20v2\" /><path d=\"M2 15h2\" /><path d=\"M2 9h2\" /><path d=\"M20 15h2\" /><path d=\"M20 9h2\" /><path d=\"M9 2v2\" /><path d=\"M9 20v2\" />","folder-tree":"<path d=\"M20 10a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1h-2.5a1 1 0 0 1-.8-.4l-.9-1.2A1 1 0 0 0 15 3h-2a1 1 0 0 0-1 1v5a1 1 0 0 0 1 1Z\" /><path d=\"M20 21a1 1 0 0 0 1-1v-3a1 1 0 0 0-1-1h-2.9a1 1 0 0 1-.88-.55l-.42-.85a1 1 0 0 0-.92-.6H13a1 1 0 0 0-1 1v5a1 1 0 0 0 1 1Z\" /><path d=\"M3 5a2 2 0 0 0 2 2h3\" /><path d=\"M3 3v13a2 2 0 0 0 2 2h3\" />","github":"<path d=\"M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4\" /><path d=\"M9 18c-4.51 2-5-2-7-2\" />","grid-3x3":"<rect width=\"18\" height=\"18\" x=\"3\" y=\"3\" rx=\"2\" /><path d=\"M3 9h18\" /><path d=\"M3 15h18\" /><path d=\"M9 3v18\" /><path d=\"M15 3v18\" />","history":"<path d=\"M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8\" /><path d=\"M3 3v5h5\" /><path d=\"M12 7v5l4 2\" />","loader":"<path d=\"M12 2v4\" /><path d=\"m16.2 7.8 2.9-2.9\" /><path d=\"M18 12h4\" /><path d=\"m16.2 16.2 2.9 2.9\" /><path d=\"M12 18v4\" /><path d=\"m4.9 19.1 2.9-2.9\" /><path d=\"M2 12h4\" /><path d=\"m4.9 4.9 2.9 2.9\" />","moon":"<path d=\"M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z\" />","plug":"<path d=\"M12 22v-5\" /><path d=\"M9 8V2\" /><path d=\"M15 8V2\" /><path d=\"M18 8v5a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V8Z\" />","refresh-cw":"<path d=\"M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8\" /><path d=\"M21 3v5h-5\" /><path d=\"M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16\" /><path d=\"M8 16H3v5\" />","sliders-horizontal":"<line x1=\"21\" x2=\"14\" y1=\"4\" y2=\"4\" /><line x1=\"10\" x2=\"3\" y1=\"4\" y2=\"4\" /><line x1=\"21\" x2=\"12\" y1=\"12\" y2=\"12\" /><line x1=\"8\" x2=\"3\" y1=\"12\" y2=\"12\" /><line x1=\"21\" x2=\"16\" y1=\"20\" y2=\"20\" /><line x1=\"12\" x2=\"3\" y1=\"20\" y2=\"20\" /><line x1=\"14\" x2=\"14\" y1=\"2\" y2=\"6\" /><line x1=\"8\" x2=\"8\" y1=\"10\" y2=\"14\" /><line x1=\"16\" x2=\"16\" y1=\"18\" y2=\"22\" />","timer":"<line x1=\"10\" x2=\"14\" y1=\"2\" y2=\"2\" /><line x1=\"12\" x2=\"15\" y1=\"14\" y2=\"11\" /><circle cx=\"12\" cy=\"14\" r=\"8\" />","trending-up":"<polyline points=\"22 7 13.5 15.5 8.5 10.5 2 17\" /><polyline points=\"16 7 22 7 22 13\" />","trending-down":"<polyline points=\"22 17 13.5 8.5 8.5 13.5 2 7\" /><polyline points=\"16 17 22 17 22 11\" />","wallet":"<path d=\"M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1\" /><path d=\"M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4\" />","wrench":"<path d=\"M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z\" />","sun":"<circle cx=\"12\" cy=\"12\" r=\"4\" /><path d=\"M12 2v2\" /><path d=\"M12 20v2\" /><path d=\"m4.93 4.93 1.41 1.41\" /><path d=\"m17.66 17.66 1.41 1.41\" /><path d=\"M2 12h2\" /><path d=\"M20 12h2\" /><path d=\"m6.34 17.66-1.41 1.41\" /><path d=\"m19.07 4.93-1.41 1.41\" />","pie-chart":"<path d=\"M21.21 15.89A10 10 0 1 1 8 2.83\" /><path d=\"M22 12A10 10 0 0 0 12 2v10z\" />","bar-chart-3":"<path d=\"M3 3v18h18\" /><path d=\"M18 17V9\" /><path d=\"M13 17V5\" /><path d=\"M8 17v-3\" />"};
+function drawIcons(root = document) {
+  root.querySelectorAll('i[data-lucide]').forEach(i => {
+    const name = i.getAttribute('data-lucide');
+    const tmp = document.createElement('span');
+    tmp.innerHTML = `<svg class="lucide" viewBox="0 0 24 24" aria-hidden="true">${ICONS[name] || ''}</svg>`;
+    i.replaceWith(tmp.firstChild);
+  });
+}
+
 /* ───────────────────────── i18n ───────────────────────── */
 const I18N = {
   en: {
-    title_a: 'Your', title_b: 'Claude', title_c: 'reality check',
-    subtitle: 'What you actually pay. What you actually use. No marketing.',
-    generated: 'Generated',
-    sessions_scanned: 'Claude Code sessions scanned',
+    h_pay: 'You pay', h_use: 'You use',
+    hero_note: (month, pay, equiv) => `The first number is your monthly bill. The second is ${month} at API rates: it measures what you're getting, not money in your pocket. Stop using Claude tomorrow and you save ${pay}, not ${equiv}.`,
+    stat_hours: 'active hours', stat_days: 'active days', stat_msgs: 'messages', stat_cph: 'per active hour',
+    generated: 'Generated', files_scanned: 'log files scanned',
+    demo_chip: 'Demo data: every number on this page is invented.',
+    stale_a: 'This data is from', stale_b: 'Run', stale_c: 'to refresh it.',
 
-    pay_label: 'What you actually pay (per month)',
+    theme: 'Theme', refresh: 'Refresh',
+
+    block_title: 'Last 5 hours',
+    block_of_cap: 'of your cap', block_over_cap: 'over your cap',
+    block_tokens: 'effective tokens',
+    block_tokens_tip: 'Input + output + cache writes. Cache reads are excluded because they are cheap.',
+    block_msgs: 'messages', block_cost: 'at API rates', block_since: 'since',
+    block_inactive: 'No activity in the last 5 hours.',
+    limit_edit_label: 'Cap',
+    limit_popover_label: 'Your own cap, in effective tokens per 5 hours. Anthropic doesn\'t publish one.',
+    limit_save: 'Save',
+
+    card_heatmap: 'Activity',
+    card_heatmap_sub: 'Effective tokens per day, last 26 weeks',
+    heatmap_less: 'Less', heatmap_more: 'More',
+    fact_days: 'active days, all time', fact_projects: 'projects this month', fact_model: 'msgs on your top model', fact_cache: 'saved by prompt cache, at API rates',
+
+    pay_label: 'What you pay',
     pay_unit: '/ month',
-    pay_caveat_a: 'subscriptions',
-    pay_caveat_b: 'direct API',
-    pay_caveat_none: 'Flat-rate plans cover Claude Code & Claude.ai. Deployed agents bill separately.',
+    plan_subscriptions: 'Subscriptions',
+    api_pay_per_use: 'Pay-per-use API (deployed agents)',
+    edit_hint: 'Click to edit. Saved in this browser only.',
+    price_placeholder: 'monthly $',
+    check_billing: 'check billing',
+    partial_a: 'Partial total:', partial_b: 'API connections have no amount yet.',
+    compare_bill: 'Your bill', compare_rates: 'Same usage at API rates',
 
-    plan_subscriptions: 'Plan subscriptions',
-    api_pay_per_use: 'API — pay-per-use (deployed agents)',
-    edit_hint: 'click to edit',
-
-    use_label: 'What you actually use this month',
-    hours_active: 'hours active',
-    across_days: 'across',
-    days: 'days',
-    days_singular: 'day',
+    use_label: 'What you use',
+    hours_active: 'Active hours',
+    across_days: (n) => `across ${n} ${n === 1 ? 'day' : 'days'}`,
     last_month: 'last month',
-    on: 'on',
-
-    msgs_month: 'Messages this month',
+    msgs_month: 'Messages',
     avg_per_day: 'avg per active day',
     real_cph: 'Real cost per active hour',
-    real_cph_detail: 'real spend ÷ active hours',
-    api_billing_label: 'If billed per-token (Anthropic API rates)',
-    api_billing_detail: 'Reference only — you don\'t pay this',
-    projection: 'Projected for full month (at current pace)',
-    projection_detail: 'API-equivalent · you still pay flat',
+    api_billing_label: 'If billed per token',
+    api_billing_detail: 'Anthropic API rates. Reference only, you don\'t pay this.',
+    projection: 'Projected for the full month',
+    projection_detail: 'At the current pace, at API rates.',
+    reality_underuse: (h) => `Only ${h} active hours so far this month. At this pace you may be overpaying for the plan.`,
 
-    reality_truth: 'The truth:',
-    reality_a: 'You pay',
-    reality_b: ', period. The',
-    reality_c: '"API-equivalent" number is what the same prompts',
-    reality_d: 'would',
-    reality_e: 'have cost on pay-as-you-go — it\'s a measure of',
-    reality_f: 'how much you\'re getting',
-    reality_g: ', not money in your pocket. Stop using Claude tomorrow → save',
-    reality_h: 'not',
-    reality_underuse: 'Heads up: only',
-    reality_underuse_b: 'active hours this month. At this pace you\'re underusing the plan.',
-    reality_bottomline: 'Bottom line: at',
-    reality_bottomline_b: 'h/month, the Max plan is the right tier for you.',
-
-    kpi_active_days: 'Active days',
-    kpi_active_days_sub: 'days you opened Claude Code this month',
-    kpi_messages: 'Messages',
-    kpi_messages_sub: 'per active day',
-    kpi_projects: 'Projects touched',
-    kpi_projects_sub: 'distinct folders this month',
-    kpi_topmodel: 'Top model',
-    kpi_topmodel_sub: 'msgs lifetime',
-
-    block_title: 'Current 5-hour block',
-    block_sub: 'Effective tokens (input + output + cache write — excludes cheap cache reads). Resets every 5 hours.',
-    block_tokens: 'effective tokens',
-    block_window_start: 'Window started',
-    block_msgs: 'messages',
-    block_cost: 'API-equiv cost',
-    block_inactive: 'No activity in the last 5 hours.',
-    block_tools_label: 'Tools used in this window',
-
-    card_tools: 'Tool usage breakdown',
-    card_tools_sub: 'Lifetime calls per tool',
-
-    card_heatmap: 'Activity heatmap',
-    card_heatmap_sub: 'Effective tokens per day · last 18 weeks',
-    heatmap_less: 'Less', heatmap_more: 'More',
-
-    limit_edit_label: 'Set 5h cap',
-    limit_popover_label: 'Personal token cap (effective tokens in the 5h window)',
-    limit_save: 'Save',
+    card_daily: 'Daily activity, last 60 days',
     wow_label: 'vs last week',
+    metric_hours: 'Active hours', metric_msgs: 'Messages', metric_cost: 'At API rates',
+    unit_h: 'h', unit_msgs: 'msgs',
 
-    card_daily: 'Daily activity (last 60 days)',
-    metric_hours: 'Active hours', metric_msgs: 'Messages', metric_cost: 'API-equiv $',
+    card_tools: 'Tools',
+    card_tools_sub: 'Calls per tool, all time',
+    no_tools: 'No tool usage yet.',
     card_projects: 'Where your Claude time goes',
-    card_projects_sub: 'Lifetime · top 10 projects',
-    card_models: 'Model mix',
-    card_models_sub: 'by message count',
+    card_projects_sub: 'Top 10 projects, all time',
+    sess_count: 'sessions', msgs: 'msgs',
+
     card_monthly: 'Monthly usage',
-    card_monthly_sub: 'active hours per month',
+    card_monthly_sub: 'Active hours per month',
+    card_models: 'Model mix',
+    card_models_sub: 'By message count',
+
     card_sessions: 'Recent sessions',
-    card_sessions_sub: 'last 10',
-    card_api: 'API connections (deployed agents)',
+    card_sessions_sub: 'Last 10',
+    th_when: 'When', th_project: 'Project', th_model: 'Model', th_msgs: 'Msgs', th_cost: 'At API rates',
+
+    card_api: 'API connections',
     card_api_sub: 'Edit prices to match your actual bill',
-    th_when: 'When', th_project: 'Project', th_model: 'Model', th_msgs: 'Msgs',
     th_agent: 'Agent', th_provider: 'Provider', th_model_used: 'Model', th_role: 'What it does', th_month: 'Monthly bill',
-    sess_count: 'sess.',
-    msgs: 'msgs',
+    api_total: 'API total / month',
 
     footer_refresh: 'Refresh data',
-    footer_active_def: 'Active time counts gaps under 5 min as continuous work.',
-    footer_prices_def: 'Prices you edit are saved in this browser\'s localStorage only.',
+    footer_active_def: 'Active time counts gaps under 5 minutes as continuous work.',
+    footer_prices_def: 'Prices you edit stay in this browser. Nothing leaves your machine.',
+    footer_rates: 'API rates checked November 3, 2026.',
+
+    empty_title: 'No usage data yet',
+    empty_run: 'Run this next to the page, then reload:',
+    empty_demo: 'See it with demo data',
   },
   he: {
-    title_a: 'תמונת', title_b: 'Claude', title_c: 'אמת',
-    subtitle: 'מה אתה באמת משלם. מה אתה באמת משתמש. בלי שיווק.',
-    generated: 'עודכן ב',
-    sessions_scanned: 'סשנים של Claude Code נסרקו',
+    h_pay: 'אתה משלם', h_use: 'אתה מקבל',
+    hero_note: (month, pay, equiv) => `המספר הראשון הוא החשבון החודשי שלך. השני הוא ${month} לפי מחירי API: הוא מודד כמה אתה מקבל, לא כסף בכיס. תפסיק להשתמש ב-Claude מחר ותחסוך ${pay}, לא ${equiv}.`,
+    stat_hours: 'שעות פעילות', stat_days: 'ימים פעילים', stat_msgs: 'הודעות', stat_cph: 'לשעת פעילות',
+    generated: 'עודכן', files_scanned: 'קובצי לוג נסרקו',
+    demo_chip: 'נתוני דמו: כל מספר בעמוד הזה בדוי.',
+    stale_a: 'הנתונים האלה מ-', stale_b: 'הרץ', stale_c: 'כדי לרענן.',
 
-    pay_label: 'מה אתה משלם בפועל (לחודש)',
-    pay_unit: '/ חודש',
-    pay_caveat_a: 'מנויים',
-    pay_caveat_b: 'API ישיר',
-    pay_caveat_none: 'מסלולים קבועים מכסים את Claude Code ו-Claude.ai. סוכנים פרוסים מחויבים בנפרד.',
+    theme: 'תצוגה', refresh: 'רענון',
 
-    plan_subscriptions: 'מנויים',
-    api_pay_per_use: 'API — תשלום לפי שימוש (סוכנים פרוסים)',
-    edit_hint: 'לחץ לעריכה',
-
-    use_label: 'מה אתה באמת משתמש החודש',
-    hours_active: 'שעות פעילות',
-    across_days: 'על פני',
-    days: 'ימים',
-    days_singular: 'יום',
-    last_month: 'חודש שעבר',
-    on: 'על פני',
-
-    msgs_month: 'הודעות החודש',
-    avg_per_day: 'בממוצע ליום פעיל',
-    real_cph: 'עלות אמיתית לשעת עבודה',
-    real_cph_detail: 'תשלום בפועל ÷ שעות פעילות',
-    api_billing_label: 'אם היה מחויב לפי טוקנים (מחירי API של Anthropic)',
-    api_billing_detail: 'להתייחסות בלבד — אתה לא משלם את זה',
-    projection: 'תחזית לחודש מלא (לפי קצב נוכחי)',
-    projection_detail: 'שווה-ערך API · אתה משלם סכום קבוע',
-
-    reality_truth: 'האמת:',
-    reality_a: 'אתה משלם',
-    reality_b: ', נקודה. מספר',
-    reality_c: '״שווה-ערך API״ הוא כמה אותן הפניות',
-    reality_d: 'היו',
-    reality_e: 'עולות בתשלום לפי שימוש — זו מדידה של',
-    reality_f: 'כמה אתה מקבל',
-    reality_g: ', לא כסף בכיס. תפסיק להשתמש מחר → תחסוך',
-    reality_h: 'לא',
-    reality_underuse: 'שים לב: רק',
-    reality_underuse_b: 'שעות פעילות החודש. בקצב הזה אתה לא ממצה את המסלול.',
-    reality_bottomline: 'שורה תחתונה: ב-',
-    reality_bottomline_b: 'שעות לחודש, מסלול ה-Max הוא הנכון לך.',
-
-    kpi_active_days: 'ימים פעילים',
-    kpi_active_days_sub: 'ימים שפתחת Claude Code החודש',
-    kpi_messages: 'הודעות',
-    kpi_messages_sub: 'ליום פעיל',
-    kpi_projects: 'פרויקטים שנגעת בהם',
-    kpi_projects_sub: 'תיקיות שונות החודש',
-    kpi_topmodel: 'המודל המוביל',
-    kpi_topmodel_sub: 'הודעות בכל הזמן',
-
-    block_title: 'בלוק 5 השעות הנוכחי',
-    block_sub: 'טוקנים אפקטיביים (קלט + פלט + כתיבה ל-cache — לא כולל קריאות cache זולות). מתאפס כל 5 שעות.',
+    block_title: '5 השעות האחרונות',
+    block_of_cap: 'מהתקרה שלך', block_over_cap: 'מעל התקרה שלך',
     block_tokens: 'טוקנים אפקטיביים',
-    block_window_start: 'החלון התחיל ב',
-    block_msgs: 'הודעות',
-    block_cost: 'עלות שווה-ערך API',
+    block_tokens_tip: 'קלט + פלט + כתיבה ל-cache. קריאות cache לא נספרות כי הן זולות.',
+    block_msgs: 'הודעות', block_cost: 'לפי מחירי API', block_since: 'מאז',
     block_inactive: 'אין פעילות ב-5 השעות האחרונות.',
-    block_tools_label: 'כלים בשימוש בחלון הזה',
-
-    card_tools: 'התפלגות שימוש בכלים',
-    card_tools_sub: 'כמות קריאות לכל כלי (lifetime)',
-
-    card_heatmap: 'מפת חום של פעילות',
-    card_heatmap_sub: 'טוקנים אפקטיביים ליום · 18 שבועות אחרונים',
-    heatmap_less: 'פחות', heatmap_more: 'יותר',
-
-    limit_edit_label: 'הגדר תקרת 5h',
-    limit_popover_label: 'תקרת טוקנים אישית (טוקנים אפקטיביים בחלון 5 שעות)',
+    limit_edit_label: 'תקרה',
+    limit_popover_label: 'תקרה משלך, בטוקנים אפקטיביים ל-5 שעות. Anthropic לא מפרסמת אחת.',
     limit_save: 'שמור',
-    wow_label: 'מול שבוע שעבר',
 
-    card_daily: 'פעילות יומית (60 ימים אחרונים)',
-    metric_hours: 'שעות פעילות', metric_msgs: 'הודעות', metric_cost: 'שווה-ערך API ($)',
-    card_projects: 'איפה הזמן שלך ב-Claude הולך',
-    card_projects_sub: 'מצטבר · 10 פרויקטים מובילים',
-    card_models: 'תמהיל מודלים',
-    card_models_sub: 'לפי מספר הודעות',
+    card_heatmap: 'פעילות',
+    card_heatmap_sub: 'טוקנים אפקטיביים ליום, 26 שבועות אחרונים',
+    heatmap_less: 'פחות', heatmap_more: 'יותר',
+    fact_days: 'ימים פעילים, בכל הזמן', fact_projects: 'פרויקטים החודש', fact_model: 'הודעות במודל המוביל', fact_cache: 'נחסכו בזכות cache, לפי מחירי API',
+
+    pay_label: 'מה אתה משלם',
+    pay_unit: '/ חודש',
+    plan_subscriptions: 'מנויים',
+    api_pay_per_use: 'API בתשלום לפי שימוש (סוכנים פרוסים)',
+    edit_hint: 'לחץ לעריכה. נשמר בדפדפן הזה בלבד.',
+    price_placeholder: '$ לחודש',
+    check_billing: 'בדוק חיובים',
+    partial_a: 'סכום חלקי:', partial_b: 'חיבורי API עדיין בלי סכום.',
+    compare_bill: 'החשבון שלך', compare_rates: 'אותו שימוש לפי מחירי API',
+
+    use_label: 'מה אתה משתמש',
+    hours_active: 'שעות פעילות',
+    across_days: (n) => `על פני ${n === 1 ? 'יום אחד' : n + ' ימים'}`,
+    last_month: 'חודש שעבר',
+    msgs_month: 'הודעות',
+    avg_per_day: 'בממוצע ליום פעיל',
+    real_cph: 'עלות אמיתית לשעת פעילות',
+    api_billing_label: 'אם היה מחויב לפי טוקנים',
+    api_billing_detail: 'מחירי ה-API של Anthropic. להתייחסות בלבד, אתה לא משלם את זה.',
+    projection: 'תחזית לחודש מלא',
+    projection_detail: 'בקצב הנוכחי, לפי מחירי API.',
+    reality_underuse: (h) => `רק ${h} שעות פעילות עד עכשיו החודש. בקצב הזה ייתכן שאתה משלם יותר מדי על המסלול.`,
+
+    card_daily: 'פעילות יומית, 60 ימים אחרונים',
+    wow_label: 'מול שבוע שעבר',
+    metric_hours: 'שעות פעילות', metric_msgs: 'הודעות', metric_cost: 'לפי מחירי API',
+    unit_h: ' שעות', unit_msgs: 'הודעות',
+
+    card_tools: 'כלים',
+    card_tools_sub: 'קריאות לכל כלי, בכל הזמן',
+    no_tools: 'עדיין אין שימוש בכלים.',
+    card_projects: 'לאן הזמן שלך ב-Claude הולך',
+    card_projects_sub: '10 פרויקטים מובילים, בכל הזמן',
+    sess_count: 'סשנים', msgs: 'הודעות',
+
     card_monthly: 'שימוש חודשי',
     card_monthly_sub: 'שעות פעילות לחודש',
+    card_models: 'תמהיל מודלים',
+    card_models_sub: 'לפי מספר הודעות',
+
     card_sessions: 'סשנים אחרונים',
     card_sessions_sub: '10 אחרונים',
-    card_api: 'חיבורי API (סוכנים פרוסים)',
-    card_api_sub: 'ערוך מחירים כדי שיתאימו לחשבונית האמיתית שלך',
-    th_when: 'מתי', th_project: 'פרויקט', th_model: 'מודל', th_msgs: 'הודעות',
+    th_when: 'מתי', th_project: 'פרויקט', th_model: 'מודל', th_msgs: 'הודעות', th_cost: 'לפי מחירי API',
+
+    card_api: 'חיבורי API',
+    card_api_sub: 'ערוך מחירים כדי שיתאימו לחשבון האמיתי שלך',
     th_agent: 'סוכן', th_provider: 'ספק', th_model_used: 'מודל', th_role: 'תפקיד', th_month: 'חיוב חודשי',
-    sess_count: 'סשנים',
-    msgs: 'הודעות',
+    api_total: 'סה״כ API לחודש',
 
     footer_refresh: 'לרענון נתונים',
     footer_active_def: 'זמן פעיל סופר פערים של פחות מ-5 דקות כעבודה רציפה.',
-    footer_prices_def: 'מחירים שאתה עורך נשמרים ב-localStorage של הדפדפן הזה בלבד.',
+    footer_prices_def: 'מחירים שאתה עורך נשארים בדפדפן הזה. שום דבר לא יוצא מהמחשב.',
+    footer_rates: 'מחירי ה-API נבדקו ב-3 בנובמבר 2026.',
+
+    empty_title: 'עדיין אין נתונים',
+    empty_run: 'הרץ את זה בתיקייה של הדף, ואז רענן:',
+    empty_demo: 'לראות עם נתוני דמו',
   },
 };
 
 /* ───────────────────────── Configuration ───────────────────────── */
-/* Subscriptions — flat-rate, USD/month. Edit when prices change. */
 /* Edit this list to match your own monthly subscriptions.
-   These are example defaults — adjust prices, add/remove rows. */
+   These are example defaults: adjust prices, add or remove rows. */
 const SUBSCRIPTIONS = [
-  { id: 'claude-max', name_en: 'Claude Max', name_he: 'Claude Max', vendor: 'Anthropic', usd: 100, color: '#8b5cf6', what_en: 'Claude Code + Claude.ai', what_he: 'Claude Code + Claude.ai' },
+  { id: 'claude-max', name_en: 'Claude Max', name_he: 'Claude Max', vendor: 'Anthropic', usd: 100, what_en: 'Claude Code + Claude.ai', what_he: 'Claude Code + Claude.ai' },
 ];
 
 /* Optional: list any pay-per-use API connections (deployed agents, separate billing).
-   Prices start blank — click "—" in the dashboard to enter the real amount from
-   your vendor's billing page. Values save in localStorage on your device only.
+   Prices start blank. Enter the real amount from your vendor's billing page in the
+   dashboard; values save in localStorage on your device only.
    Leave the array empty if you don't have any. */
 const API_CONNECTIONS = [
-  // Example shape — uncomment and edit:
+  // Example shape: uncomment and edit.
   // {
   //   id: 'my-agent',
   //   name_en: 'My deployed agent',
   //   name_he: 'הסוכן שלי',
   //   provider: 'anthropic',
-  //   model: 'claude-sonnet-4-6',
+  //   model: 'claude-sonnet-5-5',
   //   role_en: 'What it does',
   //   role_he: 'מה הוא עושה',
   //   estimate_usd: null,
@@ -702,8 +574,13 @@ const API_CONNECTIONS = [
 ];
 
 /* ───────────────────────── Helpers ───────────────────────── */
+const PARAMS = new URLSearchParams(location.search);
+const DEMO = PARAMS.has('demo');
+const DATA_SCRIPT = DEMO ? 'examples/demo-data.js' : 'claude-usage-data.js';
+
 function L() { return I18N[document.documentElement.lang === 'he' ? 'he' : 'en']; }
 function isHe() { return document.documentElement.lang === 'he'; }
+function locale() { return isHe() ? 'he-IL' : 'en-US'; }
 
 function fmtMoney(v) {
   const n = Number(v) || 0;
@@ -711,55 +588,52 @@ function fmtMoney(v) {
   return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 function fmtInt(v) { return Number(v || 0).toLocaleString('en-US'); }
-function fmtDate(iso) { try { return new Date(iso).toLocaleDateString(isHe() ? 'he-IL' : 'en-US', { month:'short', day:'numeric' }); } catch { return iso; } }
-function fmtDateTime(iso) { try { return new Date(iso).toLocaleString(isHe() ? 'he-IL' : 'en-US', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }); } catch { return iso; } }
-function escapeHtml(s) { return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function fmtCompact(v) { return Number(v || 0).toLocaleString('en-US', { notation: 'compact', maximumFractionDigits: 1 }); }
+function fmtDate(iso) { try { return new Date(iso).toLocaleDateString(locale(), { month: 'short', day: 'numeric' }); } catch { return iso; } }
+function fmtDayKey(key) { const [y, m, d] = key.split('-').map(Number); return new Date(y, m - 1, d).toLocaleDateString(locale(), { month: 'short', day: 'numeric' }); }
+function fmtDateTime(iso) { try { return new Date(iso).toLocaleString(locale(), { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }); } catch { return iso; } }
+function fmtMonth(key, opts = { month: 'long', year: 'numeric' }) { const [y, m] = key.split('-').map(Number); return new Date(y, m - 1, 1).toLocaleString(locale(), opts); }
+function escapeHtml(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+function money(v) { return `<bdi>${fmtMoney(v)}</bdi>`; }
+
+/* localStorage can throw in private windows. Settings then last until the page closes. */
+const store = {
+  get(k) { try { return localStorage.getItem(k); } catch { return null; } },
+  set(k, v) { try { localStorage.setItem(k, v); } catch {} },
+  remove(k) { try { localStorage.removeItem(k); } catch {} },
+};
 
 const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
-const COLORS = {
-  opus:   () => css('--opus'),
-  sonnet: () => css('--sonnet'),
-  haiku:  () => css('--haiku'),
-  accent: () => css('--accent'),
-  pink:   () => css('--accent-pink'),
-  textSec:() => css('--text-secondary'),
-  grid:   () => css('--grid'),
-};
 
 /* ───────────────────────── Price storage ───────────────────────── */
 /* Returns null when the user hasn't entered a real price yet. */
 function getPriceOverride(id, fallback) {
-  const raw = localStorage.getItem('claude-usage-price-' + id);
+  const raw = store.get('claude-usage-price-' + id);
   if (raw === null || raw === '') return (fallback === undefined ? null : fallback);
   const n = parseFloat(raw);
   return isNaN(n) ? (fallback === undefined ? null : fallback) : n;
 }
 function setPriceOverride(id, value) {
   if (value === null || value === '' || value === undefined) {
-    localStorage.removeItem('claude-usage-price-' + id);
+    store.remove('claude-usage-price-' + id);
   } else {
-    localStorage.setItem('claude-usage-price-' + id, String(value));
+    store.set('claude-usage-price-' + id, String(value));
   }
 }
 
 /* ───────────────────────── Data loaders ───────────────────────── */
 let dataCache = null;
 let charts = {};
+let dailyMetric = 'hours';
+let ringAnimated = false;
 
-async function loadData() {
-  if (window.CLAUDE_USAGE_DATA) return window.CLAUDE_USAGE_DATA;
-  try {
-    const r = await fetch('claude-usage-data.json?t=' + Date.now());
-    if (!r.ok) throw new Error();
-    return await r.json();
-  } catch { return null; }
-}
-async function refreshData() {
+/* A script tag instead of fetch(), because file:// blocks fetching a sibling JSON. */
+function loadData() {
   return new Promise((resolve) => {
     const s = document.createElement('script');
-    s.src = 'claude-usage-data.js?t=' + Date.now();
-    s.onload  = () => resolve(window.CLAUDE_USAGE_DATA || null);
-    s.onerror = () => resolve(null);
+    s.src = DATA_SCRIPT + '?t=' + Date.now();
+    s.onload  = () => { s.remove(); resolve(window.CLAUDE_USAGE_DATA || null); };
+    s.onerror = () => { s.remove(); resolve(null); };
     document.head.appendChild(s);
   });
 }
@@ -774,26 +648,24 @@ function countActiveProjects(data, monthKey) {
 }
 
 /* ───────────────────────── Render ───────────────────────── */
+function scaleTo(value, a, b) { return (value / Math.max(a, b, 1)) * 100; }
+
 function priceEditHTML(id, value, billingUrl) {
   const hasValue = (value !== null && value !== undefined && value !== '');
   const v = hasValue ? value : '';
-  const cls = hasValue ? 'price-edit' : 'price-edit empty';
   const linkHtml = (!hasValue && billingUrl)
-    ? `<a href="${billingUrl}" target="_blank" rel="noopener" style="font-size:0.72rem; color:var(--text-muted); margin-left:8px; text-decoration:underline;" onclick="event.stopPropagation()">${isHe() ? 'בדוק חיובים' : 'check billing'} ↗</a>`
+    ? `<a class="billing-link" href="${escapeHtml(billingUrl)}" target="_blank" rel="noopener">${L().check_billing}</a>`
     : '';
-  const placeholder = isHe() ? 'הזן סכום חודשי' : 'enter monthly $';
-  return `<span class="${cls}" data-price-id="${id}" title="${L().edit_hint}">
-            ${hasValue ? '$' : ''}<input type="number" min="0" step="0.01" value="${v}" placeholder="${placeholder}" style="width:${hasValue ? '60px' : '120px'};">
-          </span>${linkHtml}`;
+  return `<label class="price-edit ${hasValue ? '' : 'empty'}" data-price-id="${escapeHtml(id)}" title="${L().edit_hint}">
+            ${hasValue ? '<span>$</span>' : ''}<input type="number" min="0" step="0.01" value="${v}" placeholder="${L().price_placeholder}" aria-label="${L().edit_hint}">
+          </label>${linkHtml}`;
 }
 
 function render(data) {
   dataCache = data;
-  const t      = data.totals;
   const months = data.by_month;
-  const days   = data.by_day;
   const models = data.by_model;
-  const projects = data.by_project;
+  const projects = [...data.by_project].sort((a, b) => b.messages - a.messages);
   const sessions = data.recent_sessions || [];
   const lng = L();
 
@@ -804,17 +676,17 @@ function render(data) {
   const subs = SUBSCRIPTIONS.map(s => ({ ...s, usd: getPriceOverride(s.id, s.usd) }));
   const subsTotal = subs.reduce((sum, x) => sum + (x.usd || 0), 0);
 
-  // API connections — start as null until user enters real billing.
+  // API connections start as null until the user enters real billing.
   // Only entered values count toward the total.
   const apis = API_CONNECTIONS.map(a => ({ ...a, usd: getPriceOverride(a.id, a.estimate_usd) }));
   const apisWithValue = apis.filter(a => a.usd !== null && a.usd !== undefined);
   const apisMissing   = apis.filter(a => a.usd === null || a.usd === undefined);
   const apiTotal = apisWithValue.reduce((sum, a) => sum + a.usd, 0);
-
   const totalMonthly = subsTotal + apiTotal;
 
-  // This-month usage.
-  const monthLabel = thisMonth ? new Date(thisMonth.month + '-01').toLocaleString(isHe() ? 'he-IL' : 'en-US', { month: 'long', year: 'numeric' }) : '—';
+  // This-month usage, measured from when the data was generated, not from today.
+  const asOf = new Date(data.generated_at);
+  const monthLabel = thisMonth ? fmtMonth(thisMonth.month) : '';
   const activeDays   = thisMonth ? thisMonth.active_days || 0 : 0;
   const activeHours  = thisMonth ? thisMonth.active_hours || 0 : 0;
   const msgsThis     = thisMonth ? thisMonth.messages : 0;
@@ -822,579 +694,497 @@ function render(data) {
   const apiEquivThis = thisMonth ? thisMonth.cost : 0;
   const realCostPerHour = activeHours ? totalMonthly / activeHours : 0;
 
-  const today = new Date();
-  const dayOfMonth = today.getUTCDate();
-  const isCurrent  = thisMonth && thisMonth.month === `${today.getUTCFullYear()}-${String(today.getUTCMonth()+1).padStart(2,'0')}`;
-  const projection = isCurrent && dayOfMonth > 0 ? (apiEquivThis / dayOfMonth) * 30 : null;
+  const asOfMonth  = `${asOf.getUTCFullYear()}-${String(asOf.getUTCMonth() + 1).padStart(2, '0')}`;
+  const isCurrent  = thisMonth && thisMonth.month === asOfMonth;
+  const dayOfMonth = asOf.getUTCDate();
+  const daysInMonth = new Date(Date.UTC(asOf.getUTCFullYear(), asOf.getUTCMonth() + 1, 0)).getUTCDate();
+  const projection = isCurrent && dayOfMonth >= 3 ? (apiEquivThis / dayOfMonth) * daysInMonth : null;
+  const underused  = isCurrent && dayOfMonth >= 15 && activeHours < 5;
 
-  const generated = lng.generated + ' ' + fmtDateTime(data.generated_at) + ' · ' + fmtInt(data.files_scanned) + ' ' + lng.sessions_scanned;
+  const projectsThis = thisMonth && thisMonth.active_projects !== undefined ? thisMonth.active_projects : countActiveProjects(data, thisMonth?.month);
+  const staleData = !data.demo && (Date.now() - asOf.getTime()) > 24 * 3600 * 1000;
+  const activeDaysAll = (data.by_day || []).filter(d => d.effective_tokens > 0).length;
+  const topModel = models[0];
 
-  document.getElementById('content').innerHTML = `
-
-    <div class="page-header">
-      <div>
-        <div class="page-title">${lng.title_a} <span>${lng.title_b}</span> ${lng.title_c}</div>
-        <div class="page-sub">${lng.subtitle}</div>
-      </div>
-      <div class="generated"><span class="live-dot" title="live"></span>${generated}</div>
-    </div>
-
-    ${renderBlock5(data, lng)}
-
-    <!-- Activity heatmap -->
-    <div class="card">
-      <div class="card-head">
-        <div class="card-title"><i data-lucide="grid-3x3"></i> ${lng.card_heatmap}</div>
-        <div class="card-sub">${lng.card_heatmap_sub}</div>
-      </div>
-      ${renderHeatmap(data, lng)}
-    </div>
-
-    <!-- HEADLINE: pay vs use -->
-    <div class="split">
-
-      <div class="headline-card pay">
-        <div class="headline-label"><i data-lucide="wallet"></i> ${lng.pay_label}</div>
-        <div class="headline-value">${fmtMoney(totalMonthly)}${apisMissing.length ? `<span style="color:var(--warn); font-size:1.6rem; vertical-align:super; margin-left:4px;">+?</span>` : ''}<span class="unit">${lng.pay_unit}</span></div>
-        <div class="headline-sub">
-          ${fmtMoney(subsTotal)} ${lng.pay_caveat_a} · ${fmtMoney(apiTotal)} ${lng.pay_caveat_b}
-          ${apisMissing.length ? `<div style="margin-top:8px; padding:8px 10px; background:rgba(245,158,11,0.1); border-left:3px solid var(--warn); border-radius:4px; color:var(--text); font-size:0.85rem;">
-            <strong>${isHe() ? '⚠ סכום חלקי' : '⚠ Partial total'}</strong> — ${isHe() ? `${apisMissing.length} חיבורי API עדיין לא הוזנו (${apisMissing.map(a => isHe() ? a.name_he : a.name_en).join(', ')}). לחץ על "—" לידם כדי להוסיף את הסכום האמיתי מהחשבונית.` : `${apisMissing.length} API connections not entered yet (${apisMissing.map(a => isHe() ? a.name_he : a.name_en).join(', ')}). Click "—" next to them to add the real amount from your bill.`}
-          </div>` : ''}
-        </div>
-
-        <!-- Subscriptions -->
-        <div class="line-items">
-          <div style="font-size:0.72rem; font-weight:700; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px;">
-            ${lng.plan_subscriptions}
+  const el = document.getElementById('content');
+  el.className = '';
+  el.innerHTML = `
+    <header class="hero">
+      <div class="hero-in">
+        <div>
+          <h1 class="statement">
+            <span>${lng.h_pay} <b class="pay"><bdi>${fmtMoney(totalMonthly)}${apisMissing.length ? '+' : ''}</bdi></b></span>
+            <span>${lng.h_use} <b class="use"><bdi>${fmtMoney(apiEquivThis)}</bdi></b></span>
+          </h1>
+          <p class="hero-note">${lng.hero_note(monthLabel, money(totalMonthly), money(apiEquivThis))}</p>
+          <div class="hero-stats">
+            <div><div class="v">${activeHours.toFixed(1)}</div><div class="l">${lng.stat_hours}</div></div>
+            <div><div class="v">${activeDays}${isCurrent ? ` <small>/ ${dayOfMonth}</small>` : ''}</div><div class="l">${lng.stat_days}</div></div>
+            <div><div class="v">${fmtInt(msgsThis)}</div><div class="l">${lng.stat_msgs}</div></div>
+            <div><div class="v">${activeHours ? fmtMoney(realCostPerHour) : '-'}</div><div class="l">${lng.stat_cph}</div></div>
           </div>
+          <div class="status">
+            ${data.demo
+              ? `<span class="demo-chip">${lng.demo_chip}</span>`
+              : `<span><span class="live-dot"></span>${lng.generated} ${fmtDateTime(data.generated_at)} · ${fmtInt(data.files_scanned)} ${lng.files_scanned}</span>`}
+            ${staleData ? `<span class="stale-note">${lng.stale_a}${fmtDate(data.generated_at)}. ${lng.stale_b} <code>python3 analyzer.py</code> ${lng.stale_c}</span>` : ''}
+          </div>
+        </div>
+        ${renderBlock5(data, lng)}
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="card sky-card">
+        <div style="min-width:0">
+          <div class="card-head">
+            <h2 class="card-title"><i data-lucide="grid-3x3"></i> ${lng.card_heatmap}</h2>
+            <div class="card-sub">${lng.card_heatmap_sub}</div>
+          </div>
+          ${renderHeatmap(data, lng, asOf)}
+        </div>
+        <div class="facts">
+          <div class="fact"><div class="v">${fmtInt(activeDaysAll)}</div><div class="l">${lng.fact_days}</div></div>
+          <div class="fact"><div class="v">${projectsThis}</div><div class="l">${lng.fact_projects}</div></div>
+          <div class="fact"><div class="v">${fmtCompact(topModel?.messages || 0)} <span class="pill ${escapeHtml(topModel?.model || '')}" style="vertical-align:3px">${escapeHtml(topModel?.model || '-')}</span></div><div class="l">${lng.fact_model}</div></div>
+          <div class="fact"><div class="v">${fmtMoney(data.totals?.savings_vs_no_cache)}</div><div class="l">${lng.fact_cache}</div></div>
+        </div>
+      </section>
+
+      <div class="split">
+        <section class="card ledger">
+          <div class="card-head">
+            <h2 class="card-title"><i data-lucide="wallet"></i> ${lng.pay_label}</h2>
+            <div class="ledger-total"><bdi>${fmtMoney(totalMonthly)}${apisMissing.length ? '+' : ''}</bdi> <small>${lng.pay_unit}</small></div>
+          </div>
+          <div class="ledger-group">${lng.plan_subscriptions}</div>
           ${subs.map(s => `
             <div class="line">
               <div class="line-name">
-                <span class="dot" style="background:${s.color}"></span>
-                <div>
-                  <div>${isHe() ? s.name_he : s.name_en}</div>
-                  <div class="line-detail">${s.vendor} · ${isHe() ? s.what_he : s.what_en}</div>
-                </div>
+                <div class="n">${isHe() ? s.name_he : s.name_en}</div>
+                <div class="line-detail">${s.vendor} · ${isHe() ? s.what_he : s.what_en}</div>
               </div>
               <div class="line-val">${priceEditHTML(s.id, s.usd)}</div>
             </div>`).join('')}
-        </div>
-
-        <!-- API connections -->
-        <div class="line-items">
-          <div style="font-size:0.72rem; font-weight:700; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px;">
-            ${lng.api_pay_per_use}
-          </div>
-          ${apis.map(a => `
-            <div class="line">
-              <div class="line-name">
-                <span class="pill ${a.provider}" style="margin-right:6px;">${a.provider}</span>
-                <div>
-                  <div>${isHe() ? a.name_he : a.name_en}</div>
-                  <div class="line-detail">${a.model} · ${isHe() ? a.role_he : a.role_en}</div>
+          ${apis.length ? `
+            <div class="ledger-group">${lng.api_pay_per_use}</div>
+            ${apis.map(a => `
+              <div class="line">
+                <div class="line-name">
+                  <div class="n">${isHe() ? a.name_he : a.name_en}</div>
+                  <div class="line-detail">${escapeHtml(a.provider)} · ${escapeHtml(a.model)}</div>
                 </div>
-              </div>
-              <div class="line-val">${priceEditHTML(a.id, a.usd, a.billing_url)}</div>
-            </div>`).join('')}
-        </div>
-      </div>
-
-      <div class="headline-card use">
-        <div class="headline-label"><i data-lucide="cpu"></i> ${lng.use_label} (${monthLabel})</div>
-        <div class="headline-value">${activeHours.toFixed(1)}<span class="unit">${lng.hours_active}</span></div>
-        <div class="headline-sub">
-          ${lng.across_days} ${activeDays} ${activeDays === 1 ? lng.days_singular : lng.days}
-          ${prevMonth ? ` · ${lng.last_month}: ${(prevMonth.active_hours || 0).toFixed(1)}h ${lng.on} ${prevMonth.active_days || 0} ${lng.days}` : ''}
-        </div>
-        <div class="line-items">
-          <div class="line">
-            <div class="line-name"><i data-lucide="message-square" style="width:14px;height:14px;color:var(--text-secondary)"></i>
-              <div><div>${lng.msgs_month}</div><div class="line-detail">${msgsPerDay.toFixed(0)} ${lng.avg_per_day}</div></div>
+                <div class="line-val">${priceEditHTML(a.id, a.usd, a.billing_url)}</div>
+              </div>`).join('')}
+            ${apisMissing.length ? `<div class="notice"><strong>${lng.partial_a}</strong> ${apisMissing.length} ${lng.partial_b}</div>` : ''}
+          ` : ''}
+          <div class="compare">
+            <div class="compare-row">
+              <div class="compare-l">${lng.compare_bill}</div>
+              <div class="bar-track"><div class="bar-fill plain" style="width:${scaleTo(totalMonthly, apiEquivThis, totalMonthly)}%"></div></div>
+              <div class="bv">${fmtMoney(totalMonthly)}</div>
             </div>
+            <div class="compare-row">
+              <div class="compare-l">${lng.compare_rates}</div>
+              <div class="bar-track"><div class="bar-fill" style="width:${scaleTo(apiEquivThis, apiEquivThis, totalMonthly)}%"></div></div>
+              <div class="bv">${fmtMoney(apiEquivThis)}</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-head">
+            <h2 class="card-title"><i data-lucide="cpu"></i> ${lng.use_label}</h2>
+            <div class="card-sub">${monthLabel}</div>
+          </div>
+          <div class="line">
+            <div class="line-name">
+              <div class="n">${lng.hours_active}</div>
+              <div class="line-detail">${lng.across_days(activeDays)}${prevMonth ? ` · ${lng.last_month}: ${(prevMonth.active_hours || 0).toFixed(1)}` : ''}</div>
+            </div>
+            <div class="line-val">${activeHours.toFixed(1)}</div>
+          </div>
+          <div class="line">
+            <div class="line-name"><div class="n">${lng.msgs_month}</div><div class="line-detail">${msgsPerDay.toFixed(0)} ${lng.avg_per_day}</div></div>
             <div class="line-val">${fmtInt(msgsThis)}</div>
           </div>
           <div class="line">
-            <div class="line-name"><i data-lucide="dollar-sign" style="width:14px;height:14px;color:var(--text-secondary)"></i>
-              <div><div>${lng.real_cph}</div><div class="line-detail">${fmtMoney(totalMonthly)} ÷ ${activeHours.toFixed(1)}h</div></div>
-            </div>
-            <div class="line-val">${activeHours ? fmtMoney(realCostPerHour) : '—'}</div>
+            <div class="line-name"><div class="n">${lng.real_cph}</div><div class="line-detail"><bdi>${fmtMoney(totalMonthly)} ÷ ${activeHours.toFixed(1)}</bdi></div></div>
+            <div class="line-val">${activeHours ? fmtMoney(realCostPerHour) : '-'}</div>
           </div>
           <div class="line muted">
-            <div class="line-name"><i data-lucide="calculator" style="width:14px;height:14px;color:var(--text-muted)"></i>
-              <div><div>${lng.api_billing_label}</div><div class="line-detail">${lng.api_billing_detail}</div></div>
-            </div>
+            <div class="line-name"><div class="n">${lng.api_billing_label}</div><div class="line-detail">${lng.api_billing_detail}</div></div>
             <div class="line-val">${fmtMoney(apiEquivThis)}</div>
           </div>
           ${projection !== null ? `
           <div class="line muted">
-            <div class="line-name"><i data-lucide="trending-up" style="width:14px;height:14px;color:var(--text-muted)"></i>
-              <div><div>${lng.projection}</div><div class="line-detail">${lng.projection_detail} ${fmtMoney(totalMonthly)}</div></div>
-            </div>
+            <div class="line-name"><div class="n">${lng.projection}</div><div class="line-detail">${lng.projection_detail}</div></div>
             <div class="line-val">${fmtMoney(projection)}</div>
           </div>` : ''}
+          ${underused ? `<div class="notice">${lng.reality_underuse(activeHours.toFixed(1))}</div>` : ''}
+        </section>
+      </div>
+
+      <section class="card">
+        <div class="card-head" style="align-items:center">
+          <h2 class="card-title"><i data-lucide="trending-up"></i> ${lng.card_daily} ${renderWowChip(data, lng)}</h2>
+          <div class="scope-toggle" role="group">
+            <button type="button" data-metric="hours">${lng.metric_hours}</button>
+            <button type="button" data-metric="messages">${lng.metric_msgs}</button>
+            <button type="button" data-metric="cost">${lng.metric_cost}</button>
+          </div>
         </div>
+        <div class="chart-wrap"><canvas id="dailyChart"></canvas></div>
+      </section>
+
+      <div class="split">
+        <section class="card">
+          <div class="card-head">
+            <h2 class="card-title"><i data-lucide="wrench"></i> ${lng.card_tools}</h2>
+            <div class="card-sub">${lng.card_tools_sub}</div>
+          </div>
+          ${renderToolBreakdown(data.by_tool || [])}
+        </section>
+        <section class="card">
+          <div class="card-head">
+            <h2 class="card-title"><i data-lucide="folder-tree"></i> ${lng.card_projects}</h2>
+            <div class="card-sub">${lng.card_projects_sub}</div>
+          </div>
+          ${renderProjectBars(projects.slice(0, 10))}
+        </section>
       </div>
 
-    </div>
+      <div class="split">
+        <section class="card">
+          <div class="card-head">
+            <h2 class="card-title"><i data-lucide="bar-chart-3"></i> ${lng.card_monthly}</h2>
+            <div class="card-sub">${lng.card_monthly_sub}</div>
+          </div>
+          <div class="chart-wrap short"><canvas id="monthlyChart"></canvas></div>
+        </section>
+        <section class="card">
+          <div class="card-head">
+            <h2 class="card-title"><i data-lucide="pie-chart"></i> ${lng.card_models}</h2>
+            <div class="card-sub">${lng.card_models_sub}</div>
+          </div>
+          <div class="chart-wrap short"><canvas id="modelChart"></canvas></div>
+        </section>
+      </div>
 
-    <!-- Reality check -->
-    <div class="reality">
-      <strong>${lng.reality_truth}</strong>
-      ${lng.reality_a} <strong>${fmtMoney(totalMonthly)}/${isHe() ? 'חודש' : 'month'}</strong>${lng.reality_b}
-      ${lng.reality_c} <em>${lng.reality_d}</em> ${lng.reality_e} <em>${lng.reality_f}</em>${lng.reality_g}
-      <strong>${fmtMoney(totalMonthly)}</strong>, ${lng.reality_h} ${fmtMoney(apiEquivThis)}.
-      ${activeHours < 5 ? `<br><br><strong>${lng.reality_underuse}</strong> ${activeHours.toFixed(1)}h ${lng.reality_underuse_b}` : ''}
-      ${activeHours >= 20 ? `<br><br><strong>${lng.reality_bottomline}</strong>${activeHours.toFixed(0)}${lng.reality_bottomline_b}` : ''}
-    </div>
-
-    <!-- KPIs -->
-    <div class="kpi-grid">
-      <div class="kpi">
-        <div class="kpi-label"><i data-lucide="calendar-check"></i> ${lng.kpi_active_days}</div>
-        <div class="kpi-value">${activeDays}<span style="font-size:0.85rem;color:var(--text-secondary);font-weight:500;"> / ${dayOfMonth}</span></div>
-        <div class="kpi-sub">${lng.kpi_active_days_sub}</div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-label"><i data-lucide="message-square"></i> ${lng.kpi_messages}</div>
-        <div class="kpi-value">${fmtInt(msgsThis)}</div>
-        <div class="kpi-sub">${msgsPerDay.toFixed(0)} ${lng.kpi_messages_sub}</div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-label"><i data-lucide="folder-tree"></i> ${lng.kpi_projects}</div>
-        <div class="kpi-value">${countActiveProjects(data, thisMonth?.month)}</div>
-        <div class="kpi-sub">${lng.kpi_projects_sub}</div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-label"><i data-lucide="zap"></i> ${lng.kpi_topmodel}</div>
-        <div class="kpi-value">${models[0]?.model || '—'}</div>
-        <div class="kpi-sub">${fmtInt(models[0]?.messages || 0)} ${lng.kpi_topmodel_sub}</div>
-      </div>
-    </div>
-
-    <!-- Tool usage breakdown -->
-    <div class="card">
-      <div class="card-head">
-        <div class="card-title"><i data-lucide="wrench"></i> ${lng.card_tools}</div>
-        <div class="card-sub">${lng.card_tools_sub}</div>
-      </div>
-      <div>${renderToolBreakdown(data.by_tool || [])}</div>
-    </div>
-
-    <!-- Daily activity -->
-    <div class="card">
-      <div class="card-head">
-        <div class="card-title"><i data-lucide="trending-up"></i> ${lng.card_daily}
-          ${renderWowChip(data, lng)}
-        </div>
-        <div class="scope-toggle">
-          <button data-metric="hours" class="active">${lng.metric_hours}</button>
-          <button data-metric="messages">${lng.metric_msgs}</button>
-          <button data-metric="cost">${lng.metric_cost}</button>
-        </div>
-      </div>
-      <div class="chart-wrap"><canvas id="dailyChart"></canvas></div>
-    </div>
-
-    <!-- Projects + model -->
-    <div class="grid-2">
-      <div class="card">
+      <section class="card">
         <div class="card-head">
-          <div class="card-title"><i data-lucide="folder-tree"></i> ${lng.card_projects}</div>
-          <div class="card-sub">${lng.card_projects_sub}</div>
-        </div>
-        <div>${renderProjectBars(projects.slice(0, 10))}</div>
-      </div>
-      <div class="card">
-        <div class="card-head">
-          <div class="card-title"><i data-lucide="pie-chart"></i> ${lng.card_models}</div>
-          <div class="card-sub">${lng.card_models_sub}</div>
-        </div>
-        <div class="chart-wrap short"><canvas id="modelChart"></canvas></div>
-      </div>
-    </div>
-
-    <!-- Monthly + sessions -->
-    <div class="grid-2">
-      <div class="card">
-        <div class="card-head">
-          <div class="card-title"><i data-lucide="bar-chart-3"></i> ${lng.card_monthly}</div>
-          <div class="card-sub">${lng.card_monthly_sub}</div>
-        </div>
-        <div class="chart-wrap short"><canvas id="monthlyChart"></canvas></div>
-      </div>
-
-      <div class="card">
-        <div class="card-head">
-          <div class="card-title"><i data-lucide="history"></i> ${lng.card_sessions}</div>
+          <h2 class="card-title"><i data-lucide="history"></i> ${lng.card_sessions}</h2>
           <div class="card-sub">${lng.card_sessions_sub}</div>
         </div>
-        <table>
-          <thead><tr>
-            <th>${lng.th_when}</th><th>${lng.th_project}</th><th>${lng.th_model}</th><th class="num">${lng.th_msgs}</th>
-          </tr></thead>
-          <tbody>
-            ${sessions.slice(0, 10).map(s => `
+        <div class="table-wrap">
+          <table>
+            <thead><tr>
+              <th>${lng.th_when}</th><th>${lng.th_project}</th><th>${lng.th_model}</th><th class="num">${lng.th_msgs}</th><th class="num">${lng.th_cost}</th>
+            </tr></thead>
+            <tbody>
+              ${sessions.slice(0, 10).map(s => `
+                <tr>
+                  <td>${fmtDate(s.last)}</td>
+                  <td class="label" title="${escapeHtml(s.project)}">${escapeHtml(prettyProject(s.project))}</td>
+                  <td><span class="pill ${escapeHtml(s.model)}">${escapeHtml(s.model)}</span></td>
+                  <td class="num">${fmtInt(s.messages)}</td>
+                  <td class="num">${fmtMoney(s.cost)}</td>
+                </tr>`).join('')}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      ${apis.length ? `
+      <section class="card">
+        <div class="card-head">
+          <h2 class="card-title"><i data-lucide="plug"></i> ${lng.card_api}</h2>
+          <div class="card-sub">${lng.card_api_sub}</div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr>
+              <th>${lng.th_agent}</th><th>${lng.th_provider}</th><th>${lng.th_model_used}</th><th>${lng.th_role}</th><th class="num">${lng.th_month}</th>
+            </tr></thead>
+            <tbody>
+              ${apis.map(a => `
+                <tr>
+                  <td class="label">${isHe() ? a.name_he : a.name_en}</td>
+                  <td>${escapeHtml(a.provider)}</td>
+                  <td><code>${escapeHtml(a.model)}</code></td>
+                  <td>${isHe() ? a.role_he : a.role_en}</td>
+                  <td class="num">${priceEditHTML(a.id, a.usd, a.billing_url)}</td>
+                </tr>`).join('')}
               <tr>
-                <td>${fmtDate(s.last)}</td>
-                <td class="label" style="max-width:160px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(s.project)}</td>
-                <td><span class="pill ${s.model}">${s.model}</span></td>
-                <td class="num">${fmtInt(s.messages)}</td>
-              </tr>`).join('')}
-          </tbody>
-        </table>
-      </div>
-    </div>
+                <td colspan="4" class="label">${lng.api_total}</td>
+                <td class="num"><strong>${fmtMoney(apiTotal)}</strong></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>` : ''}
 
-    <!-- API connections detail card -->
-    <div class="card">
-      <div class="card-head">
-        <div class="card-title"><i data-lucide="plug"></i> ${lng.card_api}</div>
-        <div class="card-sub">${lng.card_api_sub}</div>
-      </div>
-      <table>
-        <thead><tr>
-          <th>${lng.th_agent}</th>
-          <th>${lng.th_provider}</th>
-          <th>${lng.th_model_used}</th>
-          <th>${lng.th_role}</th>
-          <th class="num">${lng.th_month}</th>
-        </tr></thead>
-        <tbody>
-          ${apis.map(a => `
-            <tr>
-              <td class="label">${isHe() ? a.name_he : a.name_en}<br><span style="font-size:0.75rem;color:var(--text-muted);">${a.path}</span></td>
-              <td><span class="pill ${a.provider}">${a.provider}</span></td>
-              <td><code style="font-size:0.78rem;background:var(--accent-light);padding:2px 6px;border-radius:4px;color:var(--accent);">${a.model}</code></td>
-              <td>${isHe() ? a.role_he : a.role_en}</td>
-              <td class="num">${priceEditHTML(a.id, a.usd, a.billing_url)}</td>
-            </tr>`).join('')}
-          <tr>
-            <td colspan="4" class="label" style="text-align:right;">${isHe() ? 'סה״כ API חודשי' : 'API total / month'}</td>
-            <td class="num"><strong>${fmtMoney(apiTotal)}</strong></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div class="footer">
-      ${lng.footer_refresh}: <code>python3 _scripts/claude_usage_analyzer.py</code><br>
-      ${lng.footer_active_def} ${lng.footer_prices_def}
-    </div>
+      <footer class="footer">
+        ${lng.footer_refresh}: <code>python3 analyzer.py</code><br>
+        ${lng.footer_active_def} ${lng.footer_prices_def} ${lng.footer_rates}
+      </footer>
+    </main>
   `;
 
-  lucide.createIcons();
+  drawIcons(el);
   renderCharts(data);
   wireMetricToggle(data);
   wirePriceEditors();
   wireLimitsPanel();
+  ringAnimated = true;
 }
 
-/* Shorten very long tool names so they don't break the layout.
-   MCP tools are named `mcp__<server>__<tool>` — keep the server + tool only. */
+/* MCP tools are named `mcp__<server>__<tool>`. Servers added through claude.ai
+   get a bare UUID, which says nothing, so keep only the tool for those. */
 function prettyToolName(name) {
   if (!name) return '?';
   if (name.startsWith('mcp__')) {
     const parts = name.split('__');
     if (parts.length >= 3) {
-      const server = parts[1].length > 12 ? parts[1].slice(0, 10) + '…' : parts[1];
-      return `mcp:${server}/${parts.slice(2).join('_')}`;
+      const server = parts[1];
+      const tool = parts.slice(2).join('_');
+      return /^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(server) ? tool : `${server.replace(/^claude[-_]/i, '')} / ${tool}`;
     }
   }
   return name;
 }
 
+/* Claude Code encodes paths in folder names, so labels can be long. The tail is what you recognize. */
+function prettyProject(label) {
+  const parts = String(label || '').split('/').filter(Boolean);
+  return parts.length > 2 ? parts.slice(-2).join('/') : (label || '');
+}
+
 function renderToolBreakdown(tools) {
   const lng = L();
-  if (!tools.length) {
-    return `<div style="color:var(--text-muted); font-size:0.85rem;">${isHe() ? 'אין נתוני שימוש בכלים עדיין.' : 'No tool usage data yet.'}</div>`;
-  }
-  const top = tools.slice(0, 12);
+  if (!tools.length) return `<div class="card-sub">${lng.no_tools}</div>`;
+  const top = tools.slice(0, 10);
   const max = top[0].count;
-  return `<div class="tool-rows">${top.map(t => {
-    const pct = (t.count / max) * 100;
+  return top.map(t => {
     const name = prettyToolName(t.name);
     return `
-      <div class="tool-row">
-        <div class="tr-name" title="${escapeHtml(t.name)}">${escapeHtml(name)}</div>
-        <div class="tr-count">${fmtInt(t.count)}</div>
-        <div class="tr-bar"><div class="tr-bar-fill" style="width:${pct}%"></div></div>
+      <div class="bar-row">
+        <div class="bn" title="${escapeHtml(t.name)}">${escapeHtml(name)}</div>
+        <div class="bar-track"><div class="bar-fill" style="width:${(t.count / max) * 100}%"></div></div>
+        <div class="bv">${fmtInt(t.count)}</div>
       </div>`;
-  }).join('')}</div>`;
+  }).join('');
 }
 
 function renderBlock5(data, lng) {
   const b = data.current_block;
+  const lines = `
+    <svg class="orbit-lines" viewBox="-750 -750 1500 1500" aria-hidden="true">
+      <ellipse rx="210" ry="210"/>
+      <ellipse rx="430" ry="250" transform="rotate(-24)"/>
+      <ellipse rx="700" ry="360" transform="rotate(-24)"/>
+    </svg>`;
   if (!b || !b.messages) {
     return `
-      <div class="block5">
-        <div class="block5-ring">${block5SvgEmpty()}</div>
-        <div class="block5-info">
-          <div class="b5-title"><i data-lucide="timer"></i> ${lng.block_title}</div>
-          <div class="b5-sub">${lng.block_inactive}</div>
+      <div class="orbit-col">
+        <div class="orbit-stage">
+          <div class="orbit-halo"></div>${lines}
+          <div class="orbit" style="--to:0"><div class="orbit-track"></div></div>
+          <div class="orbit-center"><div class="l">${lng.block_inactive}</div></div>
         </div>
+        <div class="orbit-info"><div class="orbit-title"><span><i data-lucide="timer"></i> ${lng.block_title}</span></div></div>
       </div>`;
   }
-  // Personal cap (settable via the "Set 5h cap" button + Limits popover).
+  // Personal cap, set through the Cap button. Anthropic publishes no number to compare with.
   const cap = getCap();
-  const pct = Math.min(100, (b.effective_tokens / cap) * 100);
-  const startedAt = b.started_at ? new Date(b.started_at) : null;
-  const startedStr = startedAt
-    ? startedAt.toLocaleTimeString(isHe() ? 'he-IL' : 'en-US', { hour: '2-digit', minute: '2-digit' })
-    : '—';
-  const toolsLine = (b.tools || []).slice(0, 6).map(t =>
-    `<span class="t-chip">${escapeHtml(prettyToolName(t.name))} · ${t.count}</span>`
+  const pct = (b.effective_tokens / cap) * 100;
+  const over = pct > 100;
+  const startedStr = b.started_at
+    ? new Date(b.started_at).toLocaleTimeString(locale(), { hour: '2-digit', minute: '2-digit' })
+    : '-';
+  const chips = (b.tools || []).slice(0, 5).map(t =>
+    `<span class="chip">${escapeHtml(prettyToolName(t.name))} · ${t.count}</span>`
   ).join('');
 
   return `
-    <div class="block5">
-      <div class="block5-ring">${block5Svg(pct)}
-        <div class="block5-center">
-          <div class="v">${pct.toFixed(0)}%</div>
-          <div class="l">${isHe() ? 'מנוצל' : 'used'}</div>
+    <div class="orbit-col">
+      <div class="orbit-stage">
+        <div class="orbit-halo"></div>${lines}
+        <div class="orbit ${over ? 'over' : ''} ${ringAnimated ? '' : 'sweep'}" style="--to:${Math.min(100, pct).toFixed(1)}">
+          <div class="orbit-track"></div>
+          <div class="orbit-tail"></div>
+          <div class="orbit-head-wrap"><div class="orbit-head"></div></div>
+        </div>
+        <div class="orbit-center">
+          <div class="v"><bdi>${pct.toFixed(0)}%</bdi></div>
+          <div class="l">${over ? lng.block_over_cap : lng.block_of_cap}</div>
         </div>
       </div>
-      <div class="block5-info">
-        <div class="b5-title">
-          <i data-lucide="timer"></i> ${lng.block_title}
-          <span style="margin-${isHe()?'right':'left'}:auto; position:relative;" id="limitWrap">
-            <button class="limit-edit" id="limitBtn">
-              <i data-lucide="sliders-horizontal"></i> ${lng.limit_edit_label}: ${fmtInt(cap)}
-            </button>
+      <div class="orbit-info">
+        <div class="orbit-title">
+          <span><i data-lucide="timer"></i> ${lng.block_title}</span>
+          <span class="limit-wrap" id="limitWrap">
+            <button class="limit-edit" id="limitBtn" type="button" aria-expanded="false"><i data-lucide="sliders-horizontal"></i> ${lng.limit_edit_label}: ${fmtCompact(cap)}</button>
           </span>
         </div>
-        <div class="b5-sub">${lng.block_sub}</div>
-        <div class="block5-stats">
-          <div class="block5-stat">
-            <div class="s-l">${lng.block_tokens}</div>
-            <div class="s-v">${fmtInt(b.effective_tokens)}</div>
-          </div>
-          <div class="block5-stat">
-            <div class="s-l">${lng.block_msgs}</div>
-            <div class="s-v">${fmtInt(b.messages)}</div>
-          </div>
-          <div class="block5-stat">
-            <div class="s-l">${lng.block_cost}</div>
-            <div class="s-v">${fmtMoney(b.cost)}</div>
-          </div>
-          <div class="block5-stat">
-            <div class="s-l">${lng.block_window_start}</div>
-            <div class="s-v">${startedStr}</div>
-          </div>
+        <div class="orbit-stats">
+          <div title="${lng.block_tokens_tip}"><div class="v">${fmtCompact(b.effective_tokens)}</div><div class="l">${lng.block_tokens}</div></div>
+          <div><div class="v">${fmtInt(b.messages)}</div><div class="l">${lng.block_msgs}</div></div>
+          <div><div class="v">${fmtMoney(b.cost)}</div><div class="l">${lng.block_cost}</div></div>
+          <div><div class="v">${startedStr}</div><div class="l">${lng.block_since}</div></div>
         </div>
-        ${toolsLine ? `<div class="block5-tools"><strong>${lng.block_tools_label}:</strong> ${toolsLine}</div>` : ''}
+        ${chips ? `<div class="chips">${chips}</div>` : ''}
       </div>
     </div>`;
 }
 
 function getCap() {
-  return parseInt(localStorage.getItem('claude-usage-5h-cap') || '4000000', 10);
+  return parseInt(store.get('claude-usage-5h-cap') || '4000000', 10);
 }
 function setCap(v) {
   const n = Math.max(100000, parseInt(v, 10) || 4000000);
-  localStorage.setItem('claude-usage-5h-cap', String(n));
+  store.set('claude-usage-5h-cap', String(n));
   return n;
 }
 
-function renderHeatmap(data, lng) {
-  const WEEKS = 18;
-  const totalDays = WEEKS * 7;
+function renderHeatmap(data, lng, asOf) {
+  const WEEKS = 26;
   const byDate = new Map((data.by_day || []).map(d => [d.date, d]));
-  // End at the end of current week (Saturday) so the rightmost column is current.
-  const today = new Date(); today.setHours(0,0,0,0);
-  const end = new Date(today); end.setDate(end.getDate() + (6 - end.getDay()));
-  const fmtKey = d => {
-    const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,'0'), dd = String(d.getDate()).padStart(2,'0');
-    return `${y}-${m}-${dd}`;
-  };
-  const cells = [];
-  for (let i = totalDays - 1; i >= 0; i--) {
-    const d = new Date(end); d.setDate(end.getDate() - i);
-    const k = fmtKey(d);
-    const day = byDate.get(k) || { date: k, effective_tokens: 0, messages: 0, cost: 0 };
-    cells.push({ ...day, _date: new Date(d), _isFuture: d > today });
-  }
-  const max = cells.reduce((m, c) => Math.max(m, c.effective_tokens || 0), 0);
-  const colorFor = (toks, isFuture) => {
-    if (isFuture) return 'transparent';
-    if (!toks) return '';  // uses --card-border default
-    const t = Math.min(1, Math.sqrt(toks / Math.max(1, max)));
-    // gradient from light purple to bright pink-magenta
-    const alpha = 0.18 + t * 0.82;
-    return `rgba(168, 85, 247, ${alpha.toFixed(2)})`;
-  };
+  // The last column is the week the data was generated in, so old data still shows up.
+  const anchor = new Date(asOf); anchor.setHours(0, 0, 0, 0);
+  const end = new Date(anchor); end.setDate(end.getDate() + (6 - end.getDay()));
+  const fmtKey = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
-  // Build month-label positions: a label appears in the first column of a new month
   const columns = [];
-  for (let w = 0; w < WEEKS; w++) columns.push(cells.slice(w * 7, w * 7 + 7));
+  for (let w = 0; w < WEEKS; w++) {
+    const col = [];
+    for (let r = 0; r < 7; r++) {
+      const d = new Date(end); d.setDate(end.getDate() - ((WEEKS - 1 - w) * 7 + (6 - r)));
+      const key = fmtKey(d);
+      col.push({ ...(byDate.get(key) || { effective_tokens: 0, messages: 0 }), _date: d, _future: d > anchor });
+    }
+    columns.push(col);
+  }
+  const max = columns.flat().reduce((m, c) => Math.max(m, c.effective_tokens || 0), 0);
+  const level = toks => toks ? 0.14 + 0.86 * Math.sqrt(toks / Math.max(1, max)) : 0;
+
   const MONTHS_EN = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const MONTHS_HE = ['ינו','פבר','מרץ','אפר','מאי','יונ','יול','אוג','ספט','אוק','נוב','דצמ'];
-  const months = isHe() ? MONTHS_HE : MONTHS_EN;
-  let lastMonth = -1;
-  const monthLabels = columns.map(col => {
-    const m = col[0]._date.getMonth();
-    if (m !== lastMonth) { lastMonth = m; return months[m]; }
-    return '';
-  });
+  const names = isHe() ? MONTHS_HE : MONTHS_EN;
 
-  // Render grid as flat list with grid-row positions
-  // Row 1 = month labels, Rows 2-8 = Sun..Sat
-  const cellsHtml = [];
+  const html = [];
+  let lastMonth = -1;
   columns.forEach((col, ci) => {
-    if (monthLabels[ci]) {
-      cellsHtml.push(`<div class="heatmap-label-month" style="grid-column:${ci+1};grid-row:1;">${monthLabels[ci]}</div>`);
+    const m = col[0]._date.getMonth();
+    if (m !== lastMonth && ci < WEEKS - 1) {
+      lastMonth = m;
+      html.push(`<div class="hm-month" style="grid-column:${ci + 1}">${names[m]}</div>`);
     }
     col.forEach((cell, ri) => {
-      const bg = colorFor(cell.effective_tokens, cell._isFuture);
-      const dateLabel = cell._date.toLocaleDateString(isHe() ? 'he-IL' : 'en-US', { month:'short', day:'numeric', year:'numeric' });
-      const tip = cell._isFuture
-        ? ''
-        : `${dateLabel} · ${fmtInt(cell.effective_tokens||0)} ${isHe()?'טוקנים':'tokens'} · ${cell.messages||0} ${isHe()?'הודעות':'msgs'}`;
-      cellsHtml.push(
-        `<div class="heatmap-cell" style="grid-column:${ci+1};grid-row:${ri+2};${bg?'background:'+bg:''}" title="${escapeHtml(tip)}"></div>`
-      );
+      const t = level(cell.effective_tokens);
+      const tip = cell._future ? '' : `${cell._date.toLocaleDateString(locale(), { month: 'short', day: 'numeric', year: 'numeric' })} · ${fmtInt(cell.effective_tokens)} ${isHe() ? 'טוקנים' : 'tokens'} · ${cell.messages || 0} ${isHe() ? 'הודעות' : 'msgs'}`;
+      html.push(`<div class="hm-cell ${cell._future ? 'future' : ''} ${t > .6 ? 'hot' : ''}" style="grid-column:${ci + 1};grid-row:${ri + 2};--t:${t.toFixed(2)}" title="${escapeHtml(tip)}"></div>`);
     });
   });
 
-  // Legend
-  const legendSteps = [0, 0.15, 0.35, 0.65, 1];
-  const legendHtml = legendSteps.map(t => {
-    if (t === 0) return `<div class="heatmap-cell"></div>`;
-    const a = 0.18 + t * 0.82;
-    return `<div class="heatmap-cell" style="background: rgba(168,85,247,${a.toFixed(2)})"></div>`;
-  }).join('');
-
+  const legend = [0, .3, .55, .8, 1].map(t => `<div class="hm-cell ${t > .6 ? 'hot' : ''}" style="--t:${t}"></div>`).join('');
   return `
-    <div class="heatmap-wrap">
-      <div class="heatmap-grid">${cellsHtml.join('')}</div>
-    </div>
-    <div class="heatmap-legend">
-      <div>${(() => {
-        const active = (data.by_day || []).filter(d => d.effective_tokens > 0).length;
-        return `${active} ${isHe()?'ימים פעילים בכל הזמן':'active days lifetime'}`;
-      })()}</div>
-      <div class="heatmap-legend-scale">
-        <span>${lng.heatmap_less}</span>
-        ${legendHtml}
-        <span>${lng.heatmap_more}</span>
-      </div>
-    </div>`;
+    <div class="heatmap">${html.join('')}</div>
+    <div class="hm-legend"><span>${lng.heatmap_less}</span>${legend}<span>${lng.heatmap_more}</span></div>`;
 }
 
 function renderWowChip(data, lng) {
   const days = (data.by_day || []).slice();
   if (days.length < 14) return '';
-  // Sum effective tokens for the last 7 days vs the 7 before that
-  const last7  = days.slice(-7 ).reduce((s, d) => s + (d.effective_tokens || 0), 0);
-  const prev7  = days.slice(-14, -7).reduce((s, d) => s + (d.effective_tokens || 0), 0);
+  const last7 = days.slice(-7).reduce((s, d) => s + (d.effective_tokens || 0), 0);
+  const prev7 = days.slice(-14, -7).reduce((s, d) => s + (d.effective_tokens || 0), 0);
   if (!prev7) return '';
   const pct = ((last7 - prev7) / prev7) * 100;
   const up = pct >= 0;
-  const cls = Math.abs(pct) < 2 ? '' : (up ? 'up' : 'down');
-  const icon = up ? 'trending-up' : 'trending-down';
-  const sign = up ? '+' : '';
-  return `<span class="wow-chip ${cls}" title="${lng.wow_label}">
-    <i data-lucide="${icon}"></i>${sign}${pct.toFixed(1)}%
-  </span>`;
+  return `<span class="wow-chip ${up ? '' : 'down'}" title="${lng.wow_label}"><i data-lucide="${up ? 'trending-up' : 'trending-down'}"></i><bdi>${up ? '+' : ''}${pct.toFixed(0)}%</bdi></span>`;
 }
-
-function block5Svg(pct) {
-  // r=70 → circumference = 2πr ≈ 439.82
-  const R = 70, C = 2 * Math.PI * R;
-  const offset = C * (1 - pct / 100);
-  return `
-    <svg width="160" height="160" viewBox="0 0 160 160">
-      <defs>
-        <linearGradient id="block5grad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stop-color="#8b5cf6"/>
-          <stop offset="100%" stop-color="#ec4899"/>
-        </linearGradient>
-      </defs>
-      <circle class="block5-ring-track" cx="80" cy="80" r="${R}"/>
-      <circle class="block5-ring-fill"  cx="80" cy="80" r="${R}"
-              stroke-dasharray="${C}" stroke-dashoffset="${offset}"/>
-    </svg>`;
-}
-function block5SvgEmpty() { return block5Svg(0); }
 
 function renderProjectBars(projects) {
   const max = Math.max(...projects.map(p => p.messages), 1);
   return projects.map(p => {
-    const pct = (p.messages / max) * 100;
+    const label = p.label || p.folder;
     return `
       <div class="bar-row">
-        <div class="bn" title="${escapeHtml(p.label || p.folder)}">${escapeHtml(p.label || p.folder)}</div>
-        <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
-        <div class="bm">${fmtInt(p.sessions)} ${L().sess_count}</div>
-        <div class="bv">${fmtInt(p.messages)} ${L().msgs}</div>
+        <div class="bn" title="${escapeHtml(label)}">${escapeHtml(prettyProject(label))}</div>
+        <div class="bar-track"><div class="bar-fill" style="width:${(p.messages / max) * 100}%"></div></div>
+        <div class="bv"><small>${fmtInt(p.sessions)} ${L().sess_count}</small>${fmtInt(p.messages)}</div>
       </div>`;
   }).join('');
 }
 
+function closeLimitsPanel() {
+  const pop = document.querySelector('.limit-popover');
+  if (pop) {
+    pop.remove();
+    document.getElementById('limitBtn')?.setAttribute('aria-expanded', 'false');
+  }
+}
 function wireLimitsPanel() {
   const btn = document.getElementById('limitBtn');
   const wrap = document.getElementById('limitWrap');
   if (!btn || !wrap) return;
   const lng = L();
   const presets = [
-    { label: '1M',   v:  1_000_000 },
-    { label: '2M',   v:  2_000_000 },
-    { label: '4M',   v:  4_000_000 },
-    { label: '8M',   v:  8_000_000 },
-    { label: '16M',  v: 16_000_000 },
+    { label: '1M',  v:  1_000_000 },
+    { label: '2M',  v:  2_000_000 },
+    { label: '4M',  v:  4_000_000 },
+    { label: '8M',  v:  8_000_000 },
+    { label: '16M', v: 16_000_000 },
   ];
   btn.addEventListener('click', e => {
     e.stopPropagation();
-    let pop = wrap.querySelector('.limit-popover');
-    if (pop) { pop.remove(); return; }
-    pop = document.createElement('div');
+    if (wrap.querySelector('.limit-popover')) { closeLimitsPanel(); return; }
+    const pop = document.createElement('div');
     pop.className = 'limit-popover';
     pop.innerHTML = `
-      <label>${lng.limit_popover_label}</label>
+      <label for="limitInput">${lng.limit_popover_label}</label>
       <input type="number" id="limitInput" value="${getCap()}" min="100000" step="100000">
       <div class="preset-row">
-        ${presets.map(p => `<button class="preset" data-val="${p.v}">${p.label}</button>`).join('')}
+        ${presets.map(p => `<button class="preset" type="button" data-val="${p.v}">${p.label}</button>`).join('')}
       </div>
-      <div style="display:flex; justify-content:flex-end; margin-top:10px;">
-        <button class="preset" id="limitSave" style="border-color:var(--accent); color:var(--accent);">${lng.limit_save}</button>
-      </div>`;
+      <button class="preset save" id="limitSave" type="button">${lng.limit_save}</button>`;
     pop.addEventListener('click', e2 => e2.stopPropagation());
     wrap.appendChild(pop);
+    btn.setAttribute('aria-expanded', 'true');
     pop.querySelectorAll('.preset[data-val]').forEach(p => {
-      p.addEventListener('click', () => {
-        pop.querySelector('#limitInput').value = p.dataset.val;
-      });
+      p.addEventListener('click', () => { pop.querySelector('#limitInput').value = p.dataset.val; });
     });
     pop.querySelector('#limitSave').addEventListener('click', () => {
-      const v = pop.querySelector('#limitInput').value;
-      setCap(v);
+      setCap(pop.querySelector('#limitInput').value);
       if (dataCache) render(dataCache);
     });
   });
-  // Click outside closes
-  document.addEventListener('click', () => {
-    const pop = wrap.querySelector('.limit-popover');
-    if (pop) pop.remove();
-  }, { once: true });
 }
+document.addEventListener('click', closeLimitsPanel);
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLimitsPanel(); });
 
 function wireMetricToggle(data) {
-  document.querySelectorAll('.scope-toggle button').forEach(btn => {
+  const buttons = document.querySelectorAll('.scope-toggle button');
+  const mark = () => buttons.forEach(b => {
+    const on = b.dataset.metric === dailyMetric;
+    b.classList.toggle('active', on);
+    b.setAttribute('aria-pressed', on);
+  });
+  mark();
+  buttons.forEach(btn => {
     btn.addEventListener('click', () => {
-      document.querySelectorAll('.scope-toggle button').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      renderDailyChart(data, btn.dataset.metric);
+      dailyMetric = btn.dataset.metric;
+      mark();
+      renderDailyChart(data);
     });
   });
 }
 
 function wirePriceEditors() {
   document.querySelectorAll('.price-edit input').forEach(inp => {
-    const wrap = inp.closest('.price-edit');
-    const id = wrap.dataset.priceId;
+    const id = inp.closest('.price-edit').dataset.priceId;
     inp.addEventListener('change', () => {
-      const v = inp.value === '' ? null : parseFloat(inp.value);
-      setPriceOverride(id, v);
+      setPriceOverride(id, inp.value === '' ? null : parseFloat(inp.value));
       // Re-render to update totals everywhere.
       if (dataCache) render(dataCache);
     });
@@ -1402,40 +1192,41 @@ function wirePriceEditors() {
   });
 }
 
-function renderDailyChart(data, metric = 'hours') {
-  if (charts.daily) charts.daily.destroy();
-  const days = data.by_day.slice(-60);
-  const tickColor = COLORS.textSec();
-  const gridColor = COLORS.grid();
+function barGradient(ctx) {
+  const { chartArea, ctx: c } = ctx.chart;
+  if (!chartArea) return css('--bar-b');
+  const g = c.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
+  g.addColorStop(0, css('--bar-a'));
+  g.addColorStop(1, css('--bar-b'));
+  return g;
+}
 
+function renderDailyChart(data) {
+  if (charts.daily) charts.daily.destroy();
+  const lng = L();
+  const days = data.by_day.slice(-60);
+  const tickColor = css('--text-3');
+  const gridColor = css('--grid');
   const cfgs = {
-    hours:    { data: days.map(d => (d.active_minutes || 0) / 60), fmt: v => v.toFixed(1) + 'h' },
-    messages: { data: days.map(d => d.messages),                   fmt: v => v + ' msgs' },
-    cost:     { data: days.map(d => d.cost),                       fmt: v => '$' + v.toFixed(2) },
+    hours:    { data: days.map(d => (d.active_minutes || 0) / 60), fmt: v => v.toFixed(1) + lng.unit_h },
+    messages: { data: days.map(d => d.messages),                   fmt: v => fmtInt(v) + ' ' + lng.unit_msgs },
+    cost:     { data: days.map(d => d.cost),                       fmt: v => fmtMoney(v) },
   };
-  const cfg = cfgs[metric] || cfgs.hours;
+  const cfg = cfgs[dailyMetric] || cfgs.hours;
 
   charts.daily = new Chart(document.getElementById('dailyChart'), {
     type: 'bar',
     data: {
-      labels: days.map(d => fmtDate(d.date)),
-      datasets: [{
-        data: cfg.data,
-        backgroundColor: (ctx) => {
-          const c = ctx.chart.ctx.createLinearGradient(0, 0, 0, 280);
-          c.addColorStop(0, COLORS.accent());
-          c.addColorStop(1, COLORS.pink());
-          return c;
-        },
-        borderRadius: 3,
-      }],
+      labels: days.map(d => fmtDayKey(d.date)),
+      datasets: [{ data: cfg.data, backgroundColor: barGradient, borderRadius: 3, hoverBackgroundColor: css('--accent') }],
     },
     options: {
       maintainAspectRatio: false,
-      plugins: { legend: { display: false }, tooltip: { callbacks: { label: (ctx) => cfg.fmt(ctx.parsed.y) } } },
+      animation: { duration: 300 },
+      plugins: { legend: { display: false }, tooltip: { rtl: isHe(), callbacks: { label: (ctx) => cfg.fmt(ctx.parsed.y) } } },
       scales: {
-        x: { grid: { display: false }, ticks: { color: tickColor, maxRotation: 0, autoSkip: true, maxTicksLimit: 12 } },
-        y: { grid: { color: gridColor }, ticks: { color: tickColor } },
+        x: { reverse: isHe(), grid: { display: false }, border: { color: gridColor }, ticks: { color: tickColor, maxRotation: 0, autoSkip: true, maxTicksLimit: 10 } },
+        y: { position: isHe() ? 'right' : 'left', grid: { color: gridColor }, border: { display: false }, ticks: { color: tickColor, maxTicksLimit: 6 } },
       },
     },
   });
@@ -1443,36 +1234,32 @@ function renderDailyChart(data, metric = 'hours') {
 
 function renderCharts(data) {
   ['model', 'monthly'].forEach(k => charts[k] && charts[k].destroy());
-  const tickColor = COLORS.textSec();
-  const gridColor = COLORS.grid();
+  const lng = L();
+  const tickColor = css('--text-3');
+  const gridColor = css('--grid');
   Chart.defaults.font.family = "'Heebo', sans-serif";
   Chart.defaults.color = tickColor;
 
-  renderDailyChart(data, 'hours');
+  renderDailyChart(data);
 
   const models = data.by_model.filter(m => m.messages > 0);
+  const modelColor = { opus: css('--opus'), sonnet: css('--sonnet'), haiku: css('--haiku'), fable: css('--fable') };
   charts.model = new Chart(document.getElementById('modelChart'), {
     type: 'doughnut',
     data: {
-      labels: models.map(m => m.model),
-      datasets: [{
-        data: models.map(m => m.messages),
-        backgroundColor: models.map(m => ({
-          opus: COLORS.opus(), sonnet: COLORS.sonnet(), haiku: COLORS.haiku(),
-        }[m.model] || '#9ca3af')),
-        borderWidth: 0,
-      }],
+      labels: models.map(m => m.model.charAt(0).toUpperCase() + m.model.slice(1)),
+      datasets: [{ data: models.map(m => m.messages), backgroundColor: models.map(m => modelColor[m.model] || css('--unknown')), borderWidth: 0, spacing: 2 }],
     },
     options: {
-      maintainAspectRatio: false, cutout: '60%',
+      maintainAspectRatio: false, cutout: '70%',
       plugins: {
-        legend: { position: 'bottom', labels: { color: tickColor, padding: 12, font: { size: 12 } } },
+        legend: { position: isHe() ? 'left' : 'right', rtl: isHe(), labels: { color: css('--text-2'), padding: 14, boxWidth: 10, boxHeight: 10, usePointStyle: true, font: { size: 13 } } },
         tooltip: {
+          rtl: isHe(),
           callbacks: {
             label: (ctx) => {
-              const total = models.reduce((s,m) => s + m.messages, 0);
-              const pct = (ctx.parsed / total * 100).toFixed(1);
-              return ctx.label + ': ' + ctx.parsed.toLocaleString('en-US') + ' (' + pct + '%)';
+              const total = models.reduce((s, m) => s + m.messages, 0);
+              return ctx.label + ': ' + fmtInt(ctx.parsed) + ' (' + (ctx.parsed / total * 100).toFixed(1) + '%)';
             },
           },
         },
@@ -1484,19 +1271,16 @@ function renderCharts(data) {
   charts.monthly = new Chart(document.getElementById('monthlyChart'), {
     type: 'bar',
     data: {
-      labels: months.map(m => m.month),
-      datasets: [{
-        data: months.map(m => m.active_hours || 0),
-        backgroundColor: COLORS.accent(),
-        borderRadius: 6,
-      }],
+      labels: months.map(m => fmtMonth(m.month, { month: 'short' })),
+      datasets: [{ data: months.map(m => m.active_hours || 0), backgroundColor: barGradient, borderRadius: 6, maxBarThickness: 64 }],
     },
     options: {
       maintainAspectRatio: false,
-      plugins: { legend: { display: false }, tooltip: { callbacks: { label: (ctx) => ctx.parsed.y.toFixed(1) + 'h' } } },
+      animation: { duration: 300 },
+      plugins: { legend: { display: false }, tooltip: { rtl: isHe(), callbacks: { label: (ctx) => ctx.parsed.y.toFixed(1) + lng.unit_h } } },
       scales: {
-        x: { grid: { display: false }, ticks: { color: tickColor } },
-        y: { grid: { color: gridColor }, ticks: { color: tickColor, callback: v => v + 'h' } },
+        x: { reverse: isHe(), grid: { display: false }, border: { color: gridColor }, ticks: { color: tickColor } },
+        y: { position: isHe() ? 'right' : 'left', grid: { color: gridColor }, border: { display: false }, ticks: { color: tickColor, maxTicksLimit: 6 } },
       },
     },
   });
@@ -1505,72 +1289,70 @@ function renderCharts(data) {
 /* ───────────────────────── Theme & Lang ───────────────────────── */
 function applyTheme(t) {
   document.documentElement.dataset.theme = t;
-  localStorage.setItem('claude-usage-theme', t);
-  const icon = document.querySelector('#themeBtn i');
-  if (icon) icon.setAttribute('data-lucide', t === 'dark' ? 'sun' : 'moon');
-  lucide.createIcons();
+  store.set('claude-usage-theme', t);
+  const svg = document.querySelector('#themeBtn svg');
+  if (svg) svg.innerHTML = ICONS[t === 'dark' ? 'sun' : 'moon'];
   if (dataCache) renderCharts(dataCache);
 }
 
 function applyLang(l) {
   document.documentElement.lang = l;
   document.documentElement.dir  = (l === 'he') ? 'rtl' : 'ltr';
-  localStorage.setItem('claude-usage-lang', l);
+  store.set('claude-usage-lang', l);
   document.getElementById('langBtn').textContent = (l === 'he') ? 'EN' : 'עב';
+  document.getElementById('themeLabel').textContent = L().theme;
+  document.getElementById('refreshLabel').textContent = L().refresh;
   document.title = (l === 'he') ? 'דשבורד שימוש Claude' : 'Claude Usage Dashboard';
   if (dataCache) render(dataCache);
 }
+
+function renderEmpty() {
+  const lng = L();
+  const el = document.getElementById('content');
+  el.className = 'empty';
+  el.innerHTML = `
+    <div>
+      <h1>${lng.empty_title}</h1>
+      <p>${lng.empty_run} <code>python3 analyzer.py</code></p>
+      <a href="?demo">${lng.empty_demo}</a>
+    </div>`;
+}
+
+drawIcons();
 
 document.getElementById('themeBtn').addEventListener('click', () => {
   applyTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
 });
 document.getElementById('langBtn').addEventListener('click', () => {
   applyLang(document.documentElement.lang === 'he' ? 'en' : 'he');
+  if (!dataCache) renderEmpty();
 });
 document.getElementById('refreshBtn').addEventListener('click', async () => {
-  const btn = document.getElementById('refreshBtn');
-  btn.querySelector('i').style.animation = 'spin 1s linear infinite';
-  const d = await refreshData();
-  btn.querySelector('i').style.animation = '';
+  const icon = document.querySelector('#refreshBtn svg');
+  icon.style.animation = 'spin 1s linear infinite';
+  const d = await loadData();
+  icon.style.animation = '';
   if (d) render(d);
 });
 
 /* ───────────────────────── Boot ───────────────────────── */
-/* One-time wipe of the fake estimates we wrote in the previous build. */
-if (!localStorage.getItem('claude-usage-estimates-cleared-v2')) {
-  for (const a of API_CONNECTIONS) localStorage.removeItem('claude-usage-price-' + a.id);
-  localStorage.setItem('claude-usage-estimates-cleared-v2', '1');
-}
-applyTheme(localStorage.getItem('claude-usage-theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
-applyLang(localStorage.getItem('claude-usage-lang') || 'en');
-lucide.createIcons();
+applyTheme(PARAMS.get('theme') || store.get('claude-usage-theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+applyLang(PARAMS.get('lang') || store.get('claude-usage-lang') || (navigator.language.startsWith('he') ? 'he' : 'en'));
 
-loadData().then(d => {
-  if (!d) {
-    document.getElementById('content').innerHTML = `
-      <div class="error">
-        <i data-lucide="alert-triangle" style="width:32px;height:32px;"></i>
-        <div style="margin-top:12px; font-weight:600;">No usage data found.</div>
-        <div style="margin-top:6px;">Run <code>python3 _scripts/claude_usage_analyzer.py</code> first.</div>
-      </div>`;
-    lucide.createIcons();
-    return;
-  }
-  render(d);
-});
-
-/* ── Auto-polling: re-fetches the JSON every 30s and re-renders only
-   if generated_at changed. Pause when the tab is hidden to save cycles. ──
-   To regenerate the JSON in the background:
-     python3 _scripts/claude_usage_analyzer.py --watch
-*/
+/* Auto-polling: re-reads the data every 30s and re-renders only if generated_at
+   changed. Pauses when the tab is hidden. To regenerate the data in the background:
+     python3 analyzer.py --watch */
 const POLL_MS = 30_000;
 let _lastGen = null;
+loadData().then(d => {
+  if (!d) { renderEmpty(); return; }
+  _lastGen = d.generated_at;
+  render(d);
+});
 async function pollData() {
-  if (document.hidden) return;
-  const d = await refreshData();
-  if (!d) return;
-  if (d.generated_at && d.generated_at !== _lastGen) {
+  if (document.hidden || DEMO) return;
+  const d = await loadData();
+  if (d && d.generated_at !== _lastGen) {
     _lastGen = d.generated_at;
     render(d);
   }

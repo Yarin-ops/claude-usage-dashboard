@@ -11,17 +11,17 @@
 
 | | iftahs/claude-dashboard | claude-usage-dashboard (this repo) |
 |---|---|---|
-| **Stack** | React + Vite + Express (Node 18+, TypeScript) | Single HTML + Python 3 stdlib |
+| **Stack** | React + Vite + Express (Node 18+, TypeScript) | One HTML page + Python 3 stdlib |
 | **Run** | `npm install && npm run dev` or Docker | `python3 analyzer.py && open index.html` |
 | **Always-on option** | Docker container with `restart: unless-stopped` | Run `analyzer.py --watch` in a terminal |
 | **5-hour block ring** | ✅ | ✅ |
-| **Activity heatmap** | ✅ (18 weeks) | ✅ (18 weeks) |
+| **Activity heatmap** | ✅ (18 weeks) | ✅ (26 weeks) |
 | **Tool usage breakdown** | ✅ | ✅ (with MCP names shortened) |
 | **Live refresh** | ✅ (backend polling) | ✅ (HTML polls JSON every 30s) |
 | **Weekly trends with WoW delta** | ✅ (range selector 1-4 wk) | ✅ (delta chip on daily chart) |
 | **Pay vs Use framing** | ❌ | ✅ |
 | **Editable subscriptions / API connections** | ❌ | ✅ (saves to localStorage) |
-| **Reality-check banner** | ❌ | ✅ |
+| **Plain-language reality check** | ❌ | ✅ |
 | **Monthly trend** | ❌ | ✅ |
 | **Top projects bar list** | ❌ | ✅ |
 | **Recent sessions table** | ❌ | ✅ |
@@ -29,7 +29,7 @@
 | **Settable personal cap** | ✅ (limits panel) | ✅ (limits popover) |
 | **Dependencies installed** | ~150 npm packages | 0 (stdlib only) |
 | **Open offline / from a USB stick** | Requires Node | Yes |
-| **Lines of code** | TS app (multi-file) | ~2700 lines HTML + ~400 lines Python |
+| **Lines of code** | TS app (multi-file) | ~1350 lines HTML + ~570 lines Python |
 | **License** | MIT | MIT |
 
 ## Where iftahs is better

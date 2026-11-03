@@ -34,24 +34,67 @@ PROJECT_ROOT = Path(__file__).resolve().parent
 OUTPUT_FILE    = PROJECT_ROOT / "claude-usage-data.json"
 OUTPUT_FILE_JS = PROJECT_ROOT / "claude-usage-data.js"
 
-# Pricing in USD per 1M tokens (May 2026, Anthropic public pricing).
-# Cache write 5m = 1.25x input ; cache write 1h = 2x input ; cache read = 0.10x input.
-PRICING = {
-    "opus":    {"input": 5.00,  "output": 25.00},
-    "sonnet":  {"input": 3.00,  "output": 15.00},
-    "haiku":   {"input": 1.00,  "output": 5.00},
-    "unknown": {"input": 3.00,  "output": 15.00},
-}
-
+# Pricing in USD per 1M tokens, from Anthropic's public price list (checked 2026-11-03):
+# https://platform.claude.com/docs/en/about-claude/pricing
+# Cache reads are listed per model because the ratio to input is no longer a
+# flat 0.10x. Cache writes are 1.25x input (5m TTL) and 2x input (1h TTL) everywhere.
 CACHE_WRITE_5M_MULT = 1.25
 CACHE_WRITE_1H_MULT = 2.00
-CACHE_READ_MULT     = 0.10
+
+
+def _rates(input_price: float, output_price: float, cache_read: float) -> dict:
+    return {
+        "input": input_price,
+        "output": output_price,
+        "cache_read": cache_read,
+        "cache_write_5m": input_price * CACHE_WRITE_5M_MULT,
+        "cache_write_1h": input_price * CACHE_WRITE_1H_MULT,
+    }
+
+
+PRICING = {
+    "claude-fable-5-1":  _rates(10.00, 50.00, 0.25),
+    "claude-fable-5":    _rates(10.00, 50.00, 1.00),
+    "claude-mythos-5-1": _rates(10.00, 50.00, 0.25),
+    "claude-mythos-5":   _rates(10.00, 50.00, 1.00),
+    "claude-opus-5-5":   _rates(4.00, 20.00, 0.20),
+    "claude-opus-5":     _rates(5.00, 25.00, 0.50),
+    "claude-opus-4-8":   _rates(5.00, 25.00, 0.50),
+    "claude-opus-4-7":   _rates(5.00, 25.00, 0.50),
+    "claude-opus-4-6":   _rates(5.00, 25.00, 0.50),
+    "claude-opus-4-5":   _rates(5.00, 25.00, 0.50),
+    "claude-opus-4-1":   _rates(15.00, 75.00, 1.50),
+    "claude-opus-4":     _rates(15.00, 75.00, 1.50),
+    "claude-sonnet-5-5": _rates(2.00, 10.00, 0.10),
+    "claude-sonnet-5":   _rates(2.00, 10.00, 0.20),
+    "claude-sonnet-4-6": _rates(3.00, 15.00, 0.30),
+    "claude-sonnet-4-5": _rates(3.00, 15.00, 0.30),
+    "claude-sonnet-4":   _rates(3.00, 15.00, 0.30),
+    "claude-haiku-5-5":  _rates(0.10, 0.50, 0.01),
+    "claude-haiku-4-5":  _rates(1.00, 5.00, 0.10),
+    "claude-haiku-3-5":  _rates(0.80, 4.00, 0.08),
+}
+
+# Haiku 5.5 is priced by prompt length: input + cache reads + cache writes.
+HAIKU_55_LONG_PROMPT_TOKENS = 100_000
+HAIKU_55_LONG_PROMPT = _rates(0.50, 2.50, 0.05)
+
+# A version this table doesn't list is priced at its family's current rates.
+FAMILY_DEFAULTS = {
+    "fable":   "claude-fable-5-1",
+    "opus":    "claude-opus-5-5",
+    "sonnet":  "claude-sonnet-5-5",
+    "haiku":   "claude-haiku-5-5",
+    "unknown": "claude-sonnet-5-5",
+}
 
 
 def classify_model(model_id: str) -> str:
     if not model_id:
         return "unknown"
     m = model_id.lower()
+    if "fable" in m or "mythos" in m:
+        return "fable"
     if "opus" in m:
         return "opus"
     if "sonnet" in m:
@@ -61,8 +104,31 @@ def classify_model(model_id: str) -> str:
     return "unknown"
 
 
+def rates_for(model_id: str, prompt_tokens: int = 0) -> dict:
+    """Longest matching id wins, so `claude-opus-5-5` never reads as `claude-opus-5`."""
+    m = (model_id or "").lower()
+    if "claude-" in m:
+        m = m[m.index("claude-"):]  # Drop provider prefixes such as `us.anthropic.`.
+    if m.startswith("claude-haiku-5-5") and prompt_tokens > HAIKU_55_LONG_PROMPT_TOKENS:
+        return HAIKU_55_LONG_PROMPT
+    matches = [k for k in PRICING if m == k or m.startswith(k + "-")]
+    if matches:
+        return PRICING[max(matches, key=len)]
+    return PRICING[FAMILY_DEFAULTS[classify_model(model_id)]]
+
+
+def home_relative(path: str) -> str:
+    home = str(HOME)
+    if path == home:
+        return "~"
+    return "~/" + path[len(home) + 1:] if path.startswith(home + "/") else path
+
+
 def project_label(folder_name: str) -> str:
     """Turn the encoded project folder back into something human-readable.
+
+    Only a fallback for old logs without a `cwd`: the encoding replaces every
+    non-ASCII character too, so folders with Hebrew names can't be recovered.
 
     Claude Code encodes a project's absolute path as its folder name with
     every `/` replaced by `-`. For example, `/Users/alex/code/my-app` becomes
@@ -89,11 +155,7 @@ def project_label(folder_name: str) -> str:
     return rest or "(root)"
 
 
-def cost_for_entry(model_bucket: str, usage: dict) -> dict:
-    price = PRICING.get(model_bucket, PRICING["unknown"])
-    in_per_tok  = price["input"]  / 1_000_000
-    out_per_tok = price["output"] / 1_000_000
-
+def cost_for_entry(model_id: str, usage: dict) -> dict:
     input_tokens  = usage.get("input_tokens", 0) or 0
     output_tokens = usage.get("output_tokens", 0) or 0
     cache_read    = usage.get("cache_read_input_tokens", 0) or 0
@@ -106,14 +168,17 @@ def cost_for_entry(model_bucket: str, usage: dict) -> dict:
     if cache_5m == 0 and cache_1h == 0 and cache_create:
         cache_5m = cache_create
 
-    cost_input        = input_tokens * in_per_tok
-    cost_output       = output_tokens * out_per_tok
-    cost_cache_read   = cache_read * in_per_tok * CACHE_READ_MULT
-    cost_cache_5m     = cache_5m  * in_per_tok * CACHE_WRITE_5M_MULT
-    cost_cache_1h     = cache_1h  * in_per_tok * CACHE_WRITE_1H_MULT
+    price = rates_for(model_id, input_tokens + cache_read + cache_5m + cache_1h)
+    per_tok = 1 / 1_000_000
+
+    cost_input        = input_tokens * price["input"] * per_tok
+    cost_output       = output_tokens * price["output"] * per_tok
+    cost_cache_read   = cache_read * price["cache_read"] * per_tok
+    cost_cache_5m     = cache_5m * price["cache_write_5m"] * per_tok
+    cost_cache_1h     = cache_1h * price["cache_write_1h"] * per_tok
 
     # Hypothetical cost if cache reads had been full-priced inputs (= savings).
-    savings_vs_no_cache = cache_read * in_per_tok * (1 - CACHE_READ_MULT)
+    savings_vs_no_cache = cache_read * (price["input"] - price["cache_read"]) * per_tok
 
     total = cost_input + cost_output + cost_cache_read + cost_cache_5m + cost_cache_1h
 
@@ -153,25 +218,45 @@ def iter_assistant_entries(jsonl_path: Path):
         return
 
 
-def extract_tool_names(msg: dict) -> list[str]:
-    """Pulls every tool_use block name out of an assistant message's content."""
-    content = msg.get("content")
-    if not isinstance(content, list):
-        return []
-    names = []
-    for block in content:
-        if isinstance(block, dict) and block.get("type") == "tool_use":
-            name = block.get("name")
-            if name:
-                names.append(name)
-    return names
+def collect_messages(jsonl_files: list[Path], projects_root: Path) -> list[dict]:
+    """Merge the log lines of each assistant message into one entry.
+
+    Claude Code writes one line per content block, all sharing a message id, so
+    a message with three tool calls spans at least three lines. Tool calls are
+    collected from every line, and usage comes from the line with the highest
+    output count, which is the complete one.
+    """
+    merged = {}
+    for jsonl in jsonl_files:
+        # Sub-agent logs sit deeper than the project folder, so take the first level.
+        folder = jsonl.relative_to(projects_root).parts[0]
+        for rec, msg, usage in iter_assistant_entries(jsonl):
+            model_id = msg.get("model") or "unknown"
+            if model_id == "<synthetic>":  # Client-side notices, not model turns.
+                continue
+            key = msg.get("id") or f"no-id-{len(merged)}"
+            entry = merged.get(key)
+            if entry is None:
+                entry = merged[key] = {
+                    "folder": folder,
+                    "model": model_id,
+                    "timestamp": rec.get("timestamp"),
+                    "session": rec.get("sessionId"),
+                    "cwd": rec.get("cwd"),
+                    "usage": usage,
+                    "tools": {},
+                }
+            elif (usage.get("output_tokens") or 0) >= (entry["usage"].get("output_tokens") or 0):
+                entry["usage"] = usage
+            content = msg.get("content")
+            if isinstance(content, list):
+                for block in content:
+                    if isinstance(block, dict) and block.get("type") == "tool_use" and block.get("name"):
+                        entry["tools"][block.get("id") or len(entry["tools"])] = block["name"]
+    return list(merged.values())
 
 
-def main():
-    if not CLAUDE_PROJECTS.exists():
-        print(f"No Claude data found at {CLAUDE_PROJECTS}", file=sys.stderr)
-        sys.exit(1)
-
+def build_summary(projects_root: Path) -> dict:
     totals = {
         "input_tokens": 0, "output_tokens": 0,
         "cache_read": 0, "cache_write_5m": 0, "cache_write_1h": 0,
@@ -186,6 +271,7 @@ def main():
     by_month    = defaultdict(lambda: {"cost": 0.0, "messages": 0,
                                         "input": 0, "output": 0,
                                         "cache_read": 0, "cache_write": 0})
+    month_projects = defaultdict(set)
     by_model    = defaultdict(lambda: {"cost": 0.0, "messages": 0,
                                         "input": 0, "output": 0,
                                         "cache_read": 0, "cache_write": 0})
@@ -199,7 +285,6 @@ def main():
     # < IDLE_GAP_MIN between consecutive timestamps inside the same day.
     by_day_timestamps = defaultdict(list)
     IDLE_GAP_MIN = 5  # minutes
-    seen_msgs = set()
 
     # 5-hour rolling block: Claude Code rate-limits on a 5h window. We track
     # effective tokens (input + output + cache_write — NOT cache_read) for
@@ -212,126 +297,118 @@ def main():
     block_start = None  # earliest timestamp seen inside the window
     block_by_tool = defaultdict(int)
 
-    jsonl_files = sorted(CLAUDE_PROJECTS.rglob("*.jsonl"))
+    jsonl_files = sorted(projects_root.rglob("*.jsonl"))
+    folder_cwd = {}  # A session can `cd` around, so the first path seen names the project.
 
-    for jsonl in jsonl_files:
+    for entry in collect_messages(jsonl_files, projects_root):
+        folder = entry["folder"]
+        cwd = folder_cwd.setdefault(folder, entry["cwd"]) or entry["cwd"]
+        plabel = home_relative(cwd) if cwd else project_label(folder)
+        usage = entry["usage"]
+        model_id = entry["model"]
+        bucket = classify_model(model_id)
+        costs = cost_for_entry(model_id, usage)
+
+        ts_raw = entry["timestamp"]
+        if not ts_raw:
+            continue
         try:
-            folder = jsonl.parent.name
+            ts = datetime.fromisoformat(ts_raw.replace("Z", "+00:00"))
         except Exception:
-            folder = "unknown"
-        plabel = project_label(folder)
+            continue
+        day_key   = ts.date().isoformat()
+        month_key = f"{ts.year:04d}-{ts.month:02d}"
+        by_day_timestamps[day_key].append(ts)
 
-        for rec, msg, usage in iter_assistant_entries(jsonl):
-            # De-duplicate via message id across files (resumed sessions etc).
-            mid = msg.get("id")
-            if mid and mid in seen_msgs:
-                continue
-            if mid:
-                seen_msgs.add(mid)
+        # --- totals ---
+        for k in ("input_tokens", "output_tokens", "cache_read",
+                  "cache_write_5m", "cache_write_1h",
+                  "cost", "cost_input", "cost_output", "cost_cache",
+                  "savings_vs_no_cache"):
+            totals[k] += costs[k]
+        totals["messages"] += 1
 
-            model_id = msg.get("model") or "unknown"
-            bucket = classify_model(model_id)
-            costs = cost_for_entry(bucket, usage)
+        cache_write = costs["cache_write_5m"] + costs["cache_write_1h"]
 
-            ts_raw = rec.get("timestamp")
-            if not ts_raw:
-                continue
-            try:
-                ts = datetime.fromisoformat(ts_raw.replace("Z", "+00:00"))
-            except Exception:
-                continue
-            day_key   = ts.date().isoformat()
-            month_key = f"{ts.year:04d}-{ts.month:02d}"
-            by_day_timestamps[day_key].append(ts)
+        # --- by day ---
+        effective = costs["input_tokens"] + costs["output_tokens"] + cache_write
+        d = by_day[day_key]
+        d["cost"]       += costs["cost"]
+        d["input"]      += costs["input_tokens"]
+        d["output"]     += costs["output_tokens"]
+        d["cache_read"] += costs["cache_read"]
+        d["cache_write"]+= cache_write
+        d["effective_tokens"] += effective
+        d["by_model"][bucket] += effective
+        d["messages"]   += 1
 
-            # --- totals ---
-            for k in ("input_tokens", "output_tokens", "cache_read",
-                      "cache_write_5m", "cache_write_1h",
-                      "cost", "cost_input", "cost_output", "cost_cache",
-                      "savings_vs_no_cache"):
-                totals[k] += costs[k]
-            totals["messages"] += 1
+        # --- by month ---
+        m = by_month[month_key]
+        m["cost"]       += costs["cost"]
+        m["input"]      += costs["input_tokens"]
+        m["output"]     += costs["output_tokens"]
+        m["cache_read"] += costs["cache_read"]
+        m["cache_write"]+= cache_write
+        m["messages"]   += 1
+        month_projects[month_key].add(folder)
 
-            cache_write = costs["cache_write_5m"] + costs["cache_write_1h"]
+        # --- by model ---
+        mm = by_model[bucket]
+        mm["cost"]       += costs["cost"]
+        mm["input"]      += costs["input_tokens"]
+        mm["output"]     += costs["output_tokens"]
+        mm["cache_read"] += costs["cache_read"]
+        mm["cache_write"]+= cache_write
+        mm["messages"]   += 1
 
-            # --- by day ---
-            effective = costs["input_tokens"] + costs["output_tokens"] + cache_write
-            d = by_day[day_key]
-            d["cost"]       += costs["cost"]
-            d["input"]      += costs["input_tokens"]
-            d["output"]     += costs["output_tokens"]
-            d["cache_read"] += costs["cache_read"]
-            d["cache_write"]+= cache_write
-            d["effective_tokens"] += effective
-            d["by_model"][bucket] += effective
-            d["messages"]   += 1
+        # --- by project ---
+        pp = by_project[folder]
+        pp["label"]      = plabel
+        pp["cost"]       += costs["cost"]
+        pp["input"]      += costs["input_tokens"]
+        pp["output"]     += costs["output_tokens"]
+        pp["cache_read"] += costs["cache_read"]
+        pp["cache_write"]+= cache_write
+        pp["messages"]   += 1
+        sid = entry["session"]
+        if sid:
+            pp["sessions"].add(sid)
 
-            # --- by month ---
-            m = by_month[month_key]
-            m["cost"]       += costs["cost"]
-            m["input"]      += costs["input_tokens"]
-            m["output"]     += costs["output_tokens"]
-            m["cache_read"] += costs["cache_read"]
-            m["cache_write"]+= cache_write
-            m["messages"]   += 1
+        # --- by session ---
+        if sid:
+            s = by_session.get(sid)
+            if not s:
+                s = {"sessionId": sid, "project": plabel,
+                      "first": ts_raw, "last": ts_raw, "cost": 0.0,
+                      "messages": 0, "model": bucket}
+                by_session[sid] = s
+            s["cost"]     += costs["cost"]
+            s["messages"] += 1
+            if ts_raw < s["first"]:
+                s["first"] = ts_raw
+            if ts_raw > s["last"]:
+                s["last"]  = ts_raw
+            # Track latest model used.
+            s["model"] = bucket
 
-            # --- by model ---
-            mm = by_model[bucket]
-            mm["cost"]       += costs["cost"]
-            mm["input"]      += costs["input_tokens"]
-            mm["output"]     += costs["output_tokens"]
-            mm["cache_read"] += costs["cache_read"]
-            mm["cache_write"]+= cache_write
-            mm["messages"]   += 1
+        # --- by tool ---
+        tool_names = list(entry["tools"].values())
+        for tname in tool_names:
+            by_tool[tname] += 1
 
-            # --- by project ---
-            pp = by_project[folder]
-            pp["label"]      = plabel
-            pp["cost"]       += costs["cost"]
-            pp["input"]      += costs["input_tokens"]
-            pp["output"]     += costs["output_tokens"]
-            pp["cache_read"] += costs["cache_read"]
-            pp["cache_write"]+= cache_write
-            pp["messages"]   += 1
-            sid = rec.get("sessionId")
-            if sid:
-                pp["sessions"].add(sid)
-
-            # --- by session ---
-            if sid:
-                s = by_session.get(sid)
-                if not s:
-                    s = {"sessionId": sid, "project": plabel,
-                          "first": ts_raw, "last": ts_raw, "cost": 0.0,
-                          "messages": 0, "model": bucket}
-                    by_session[sid] = s
-                s["cost"]     += costs["cost"]
-                s["messages"] += 1
-                if ts_raw < s["first"]:
-                    s["first"] = ts_raw
-                if ts_raw > s["last"]:
-                    s["last"]  = ts_raw
-                # Track latest model used.
-                s["model"] = bucket
-
-            # --- by tool ---
-            tool_names = extract_tool_names(msg)
+        # --- current 5-hour block ---
+        if ts >= block_cutoff:
+            # Effective tokens = what counts toward rate limits.
+            # Cache reads are deliberately excluded.
+            effective = (costs["input_tokens"] + costs["output_tokens"]
+                          + cache_write)
+            block_effective_tokens += effective
+            block_cost += costs["cost"]
+            block_messages += 1
+            if block_start is None or ts < block_start:
+                block_start = ts
             for tname in tool_names:
-                by_tool[tname] += 1
-
-            # --- current 5-hour block ---
-            if ts >= block_cutoff:
-                # Effective tokens = what counts toward rate limits.
-                # Cache reads are deliberately excluded.
-                effective = (costs["input_tokens"] + costs["output_tokens"]
-                              + cache_write)
-                block_effective_tokens += effective
-                block_cost += costs["cost"]
-                block_messages += 1
-                if block_start is None or ts < block_start:
-                    block_start = ts
-                for tname in tool_names:
-                    block_by_tool[tname] += 1
+                block_by_tool[tname] += 1
 
     # Convert sets to counts for projects.
     projects_out = []
@@ -407,6 +484,7 @@ def main():
             "active_days": active_days,
             "active_minutes": round(active_minutes, 1),
             "active_hours": round(active_minutes / 60.0, 1),
+            "active_projects": len(month_projects[m_iso]),
             "messages_per_active_day": round(
                 sum(d["messages"] for d in month_days) / active_days, 1
             ) if active_days else 0,
@@ -435,7 +513,7 @@ def main():
         "tools":               block_tools_out[:8],
     }
 
-    summary = {
+    return {
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "totals": {k: (round(v, 4) if isinstance(v, float) else v) for k, v in totals.items()},
         "pricing": PRICING,
@@ -449,16 +527,24 @@ def main():
         "files_scanned": len(jsonl_files),
     }
 
+
+def main():
+    if not CLAUDE_PROJECTS.exists():
+        print(f"No Claude data found at {CLAUDE_PROJECTS}", file=sys.stderr)
+        sys.exit(1)
+
+    summary = build_summary(CLAUDE_PROJECTS)
+    totals = summary["totals"]
     payload = json.dumps(summary, ensure_ascii=False, indent=2)
-    OUTPUT_FILE.write_text(payload)
+    OUTPUT_FILE.write_text(payload, encoding="utf-8")
     # Also write a JS version so the dashboard works opened directly from
     # the filesystem (file:// blocks fetch() of sibling JSON in most browsers).
-    OUTPUT_FILE_JS.write_text("window.CLAUDE_USAGE_DATA = " + payload + ";\n")
+    OUTPUT_FILE_JS.write_text("window.CLAUDE_USAGE_DATA = " + payload + ";\n", encoding="utf-8")
     print(f"Wrote {OUTPUT_FILE}")
     print(f"Wrote {OUTPUT_FILE_JS}")
-    print(f"  Files scanned:   {len(jsonl_files)}")
+    print(f"  Files scanned:   {summary['files_scanned']}")
     print(f"  Messages:        {totals['messages']:,}")
-    print(f"  Total cost:      ${totals['cost']:.2f}")
+    print(f"  API-equivalent:  ${totals['cost']:.2f}")
     print(f"  Cache savings:   ${totals['savings_vs_no_cache']:.2f}")
 
 

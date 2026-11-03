@@ -24,6 +24,8 @@ jobs:
         run: |
           flake8 analyzer.py examples/ --max-line-length=120 \
                  --select=E9,F63,F7,F82 --show-source --statistics
+      - name: Run analyzer tests
+        run: python3 -m unittest discover -s tests
       - name: Smoke-test demo data generator
         run: |
           python3 examples/generate_demo_data.py

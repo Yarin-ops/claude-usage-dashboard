@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """
-Deterministic generator for `examples/demo-data.json`.
+Deterministic generator for `examples/demo-data.json` and `examples/demo-data.js`.
 
 The output is shaped exactly like what `analyzer.py` produces, so the
-dashboard can be previewed without running against real logs.
+dashboard can be previewed without running against real logs. Every number
+in it is invented, and the `demo` flag makes the dashboard say so.
 
 Run:
     python3 examples/generate_demo_data.py
@@ -15,12 +16,18 @@ from __future__ import annotations
 
 import json
 import random
+import sys
 from collections import defaultdict
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
+ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT))
+from analyzer import PRICING  # noqa: E402
+
 random.seed(42)
-NOW = datetime(2026, 5, 15, 14, 30, tzinfo=timezone.utc)  # frozen "now" for the demo
+NOW = datetime(2026, 10, 28, 16, 40, tzinfo=timezone.utc)  # frozen "now" for the demo
+DAYS = 182  # fills the 26-week heatmap
 
 PROJECTS = [
     ("my-blog",          "my-blog"),
@@ -28,23 +35,31 @@ PROJECTS = [
     ("side-project",     "side-project"),
     ("client-dashboard", "client-dashboard"),
     ("playground",       "playground"),
-    ("(root)",           "(root)"),
+    ("infra-scripts",    "infra-scripts"),
 ]
-TOOLS = ["Bash","Edit","Read","Write","TodoWrite","Grep","Glob","WebFetch","Task","NotebookEdit"]
-PRICING = {
-    "opus":    {"input": 5.00, "output": 25.00},
-    "sonnet":  {"input": 3.00, "output": 15.00},
-    "haiku":   {"input": 1.00, "output": 5.00},
-    "unknown": {"input": 3.00, "output": 15.00},
+TOOLS = ["Bash", "Read", "Edit", "Grep", "Write", "Glob", "TodoWrite", "WebFetch", "Task", "WebSearch"]
+MODELS = {
+    "opus":   ("claude-opus-5-5", 62),
+    "sonnet": ("claude-sonnet-5-5", 24),
+    "fable":  ("claude-fable-5-1", 8),
+    "haiku":  ("claude-haiku-5-5", 6),
 }
+
+
+def cost_of(model, input_t, output_t, cache_r, cache_w):
+    p = PRICING[MODELS[model][0]]
+    return (input_t * p["input"] + output_t * p["output"]
+            + cache_r * p["cache_read"] + cache_w * p["cache_write_5m"]) / 1_000_000
 
 
 def gen_days():
     by_day = []
-    for i in range(70):
-        d = NOW - timedelta(days=69 - i)
+    for i in range(DAYS):
+        d = NOW - timedelta(days=DAYS - 1 - i)
         is_weekend = d.weekday() >= 5
-        active = (not is_weekend and random.random() < 0.85) or (is_weekend and random.random() < 0.35)
+        # Usage ramps up over the six months, like someone adopting a new tool.
+        ramp = 0.45 + 0.55 * (i / DAYS)
+        active = random.random() < (0.3 if is_weekend else 0.86)
         if not active:
             by_day.append({
                 "date": d.date().isoformat(), "active_minutes": 0.0,
@@ -53,27 +68,20 @@ def gen_days():
                 "effective_tokens": 0, "by_model": {},
             })
             continue
-        msgs = random.randint(20, 180)
+        msgs = int(random.randint(50, 260) * ramp)
         if random.random() < 0.12:
-            msgs = random.randint(180, 420)
-        input_t  = msgs * random.randint(80, 240)
-        output_t = msgs * random.randint(180, 520)
-        cache_r  = msgs * random.randint(4000, 18000)
-        cache_w  = msgs * random.randint(400, 2400)
-        roll = random.random()
-        model = "sonnet" if roll < 0.6 else ("opus" if roll < 0.9 else "haiku")
-        cost = (
-            input_t  * PRICING[model]["input"] / 1_000_000
-          + output_t * PRICING[model]["output"] / 1_000_000
-          + cache_w  * PRICING[model]["input"] * 1.25 / 1_000_000
-          + cache_r  * PRICING[model]["input"] * 0.10 / 1_000_000
-        )
+            msgs = int(random.randint(300, 520) * ramp)
+        msgs = max(12, msgs)
+        input_t  = msgs * random.randint(4, 30)
+        output_t = msgs * random.randint(280, 820)
+        cache_r  = msgs * random.randint(120_000, 320_000)
+        cache_w  = msgs * random.randint(3_000, 12_000)
+        model = random.choices(list(MODELS), weights=[w for _, w in MODELS.values()])[0]
         eff = input_t + output_t + cache_w
-        active_min = round(random.uniform(0.5, 4.5) * (msgs / 60), 1)
         by_day.append({
             "date": d.date().isoformat(),
-            "active_minutes": active_min,
-            "cost": round(cost, 4),
+            "active_minutes": round(min(msgs * random.uniform(0.9, 1.5), 560), 1),
+            "cost": round(cost_of(model, input_t, output_t, cache_r, cache_w), 4),
             "input": input_t, "output": output_t,
             "cache_read": cache_r, "cache_write": cache_w,
             "messages": msgs,
@@ -95,12 +103,12 @@ def main():
     }
 
     # by_month
-    mb = defaultdict(lambda: {"cost":0,"messages":0,"input":0,"output":0,
-                                "cache_read":0,"cache_write":0,"active_minutes":0})
+    mb = defaultdict(lambda: {"cost": 0, "messages": 0, "input": 0, "output": 0,
+                              "cache_read": 0, "cache_write": 0, "active_minutes": 0})
     for d in by_day:
         k = d["date"][:7]
-        for f in ("cost","messages","input","output","cache_read","cache_write","active_minutes"):
-            mb[k][f] += d[f] if f != "messages" else d["messages"]
+        for f in ("cost", "messages", "input", "output", "cache_read", "cache_write", "active_minutes"):
+            mb[k][f] += d[f]
     by_month = []
     for k in sorted(mb):
         days_in = [d for d in by_day if d["date"].startswith(k)]
@@ -114,16 +122,18 @@ def main():
             "active_days": active_days,
             "active_minutes": round(v["active_minutes"], 1),
             "active_hours": round(v["active_minutes"] / 60, 1),
+            "active_projects": random.randint(4, len(PROJECTS)),
             "messages_per_active_day": round(v["messages"] / active_days, 1) if active_days else 0,
         })
 
     # by_model
-    bmt = defaultdict(lambda: {"cost":0,"messages":0,"input":0,"output":0,
-                                  "cache_read":0,"cache_write":0})
+    bmt = defaultdict(lambda: {"cost": 0, "messages": 0, "input": 0, "output": 0,
+                               "cache_read": 0, "cache_write": 0})
     for d in by_day:
-        if d["messages"] == 0: continue
+        if d["messages"] == 0:
+            continue
         m = next(iter(d["by_model"]))
-        for f in ("cost","input","output","cache_read","cache_write"):
+        for f in ("cost", "input", "output", "cache_read", "cache_write"):
             bmt[m][f] += d[f]
         bmt[m]["messages"] += d["messages"]
     by_model = sorted(
@@ -144,71 +154,82 @@ def main():
             "output": int(total["output"] * w),
             "cache_read": int(total["cache_read"] * w),
             "cache_write": int(total["cache_write"] * w),
-            "sessions": random.randint(int(w * 40) + 2, int(w * 80) + 5),
+            "sessions": random.randint(int(w * 200) + 4, int(w * 400) + 8),
         })
 
     # by_tool
     by_tool = []
     for i, t in enumerate(TOOLS):
-        c = max(8, int(2200 * (0.6 ** i) * random.uniform(0.7, 1.3)))
+        c = max(40, int(total["msgs"] * 0.42 * (0.62 ** i) * random.uniform(0.85, 1.15)))
         by_tool.append({"name": t, "count": c})
     by_tool.sort(key=lambda x: -x["count"])
 
     # sessions
     sessions = []
     for i in range(10):
-        end = NOW - timedelta(days=random.randint(0, 13), hours=random.randint(0, 18))
-        start = end - timedelta(minutes=random.randint(5, 120))
+        end = NOW - timedelta(hours=random.randint(i * 5, i * 11 + 4))
+        start = end - timedelta(minutes=random.randint(5, 180))
         sessions.append({
             "sessionId": f"demo-{i:04d}-{random.randint(1000, 9999):04d}",
             "project": random.choice(PROJECTS)[0],
             "first": start.isoformat(), "last": end.isoformat(),
-            "cost": round(random.uniform(0.05, 4.5), 4),
-            "messages": random.randint(5, 95),
-            "model": random.choices(["sonnet", "opus", "haiku"], weights=[6, 3, 1])[0],
+            "cost": round(random.uniform(0.4, 14), 4),
+            "messages": random.randint(12, 240),
+            "model": random.choices(list(MODELS), weights=[w for _, w in MODELS.values()])[0],
         })
     sessions.sort(key=lambda s: s["last"], reverse=True)
 
+    # The current window, priced like everything else.
+    block_output, block_write, block_read = 212_400, 2_180_000, 44_600_000
     current_block = {
         "now": NOW.isoformat(),
         "window_hours": 5,
         "started_at": (NOW - timedelta(hours=3, minutes=12)).isoformat(),
-        "effective_tokens": 1_847_500,
-        "cost": 6.42,
-        "messages": 53,
+        "effective_tokens": block_output + block_write + 2_100,
+        "cost": round(cost_of("opus", 2_100, block_output, block_read, block_write), 4),
+        "messages": 148,
         "tools": [
-            {"name": "Bash", "count": 11}, {"name": "Edit", "count": 8},
-            {"name": "Read", "count": 7},  {"name": "Write", "count": 3},
-            {"name": "Grep", "count": 2},
+            {"name": "Bash", "count": 46}, {"name": "Read", "count": 31},
+            {"name": "Edit", "count": 24}, {"name": "Grep", "count": 12},
+            {"name": "Write", "count": 5},
         ],
     }
 
+    input_cost = sum(cost_of(m, bmt[m]["input"], 0, 0, 0) for m in bmt)
+    output_cost = sum(cost_of(m, 0, bmt[m]["output"], 0, 0) for m in bmt)
+    savings = sum(
+        bmt[m]["cache_read"] * (PRICING[MODELS[m][0]]["input"] - PRICING[MODELS[m][0]]["cache_read"]) / 1_000_000
+        for m in bmt
+    )
+
     summary = {
+        "demo": True,
         "generated_at": NOW.isoformat(),
         "totals": {
             "input_tokens": total["input"], "output_tokens": total["output"],
             "cache_read": total["cache_read"],
             "cache_write_5m": total["cache_write"], "cache_write_1h": 0,
             "cost": round(total["cost"], 4),
-            "cost_input": round(total["input"] * 3 / 1_000_000, 4),
-            "cost_output": round(total["output"] * 15 / 1_000_000, 4),
-            "cost_cache": round(total["cost"] - (total["input"] * 3 + total["output"] * 15) / 1_000_000, 4),
-            "savings_vs_no_cache": round(
-                sum(d["cache_read"] * 3 * 0.9 / 1_000_000 for d in by_day), 4
-            ),
+            "cost_input": round(input_cost, 4),
+            "cost_output": round(output_cost, 4),
+            "cost_cache": round(total["cost"] - input_cost - output_cost, 4),
+            "savings_vs_no_cache": round(savings, 4),
             "messages": total["msgs"],
         },
         "pricing": PRICING,
         "by_day": by_day, "by_month": by_month, "by_model": by_model,
         "by_project": by_project, "by_tool": by_tool,
         "recent_sessions": sessions, "current_block": current_block,
-        "files_scanned": 87,
+        "files_scanned": 412,
     }
 
-    out = Path(__file__).resolve().parent / "demo-data.json"
-    out.write_text(json.dumps(summary, ensure_ascii=False, indent=2))
-    print(f"Wrote {out}")
+    here = Path(__file__).resolve().parent
+    payload = json.dumps(summary, ensure_ascii=False, indent=2)
+    (here / "demo-data.json").write_text(payload, encoding="utf-8")
+    (here / "demo-data.js").write_text("window.CLAUDE_USAGE_DATA = " + payload + ";\n", encoding="utf-8")
+    print(f"Wrote {here / 'demo-data.json'} and demo-data.js")
     print(f"  Days: {len(by_day)} | Total cost: ${total['cost']:.2f} | Messages: {total['msgs']:,}")
+    print("  Last month:", by_month[-1]["month"], by_month[-1]["active_hours"], "h", round(by_month[-1]["cost"]), "$")
 
 
 if __name__ == "__main__":

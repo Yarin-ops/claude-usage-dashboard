@@ -12,7 +12,7 @@ Thanks for being interested. This project is small on purpose, so the bar for ch
 
 What this project will keep doing:
 
-- **Single HTML file** — no separate `.css`, no separate `.js`, no build step. Inline everything.
+- **One HTML page** — no separate `.css`, no separate `.js`, no build step. Your code goes inline. `vendor/` holds only pinned third-party files, so the page never touches the network.
 - **One Python script** — standard library only. No `pip install`. Anything that needs a package goes in a different project.
 - **No network calls at runtime** — the dashboard ships its data file via filesystem, not HTTP.
 - **No telemetry** — nothing this project does should phone home, ever.

@@ -4,6 +4,27 @@ All notable changes to this project will be documented in this file. Format foll
 
 ## [Unreleased]
 
+### Fixed
+- Tool calls were undercounted about 3.6x. Claude Code writes one log line per content block, and only the first line of each message was read. Output tokens were slightly low for the same reason.
+- Fable and Mythos models landed in "unknown" and were priced like Sonnet.
+- Sub-agent logs were counted as separate projects. Project names now come from the logged path, so folders with non-ASCII names read correctly.
+- `<synthetic>` client notices no longer count as messages.
+- The page kept its loading styles after rendering, which centered and grayed out everything.
+- Commands on screen pointed to a script path that doesn't exist.
+- "Works offline" was untrue, and the unpinned icon CDN had already dropped the GitHub icon. Chart.js, fonts and icons now ship in the repo.
+- The 5-hour ring stopped at 100%. It now shows the real percentage and marks going over your cap.
+- The heatmap is anchored to when the data was generated, so old data no longer shows an empty grid.
+
+### Changed
+- Prices are per exact model version, including listed cache-read rates and Haiku 5.5's long-prompt tier, checked against Anthropic's price list on 2026-11-03.
+- New night-blue design. The page opens on Pay vs Use, with the 5-hour orbit beside it. The heatmap covers 26 weeks.
+- "Current 5-hour block" is now "Last 5 hours", which is what it measures.
+- Removed the hard-coded "the Max plan is the right tier for you" line, which had no basis.
+
+### Added
+- `index.html?demo` and a first-run screen. Demo data is marked as demo on the page.
+- Analyzer tests, run in CI.
+
 ## [0.1.0] — 2026-05-30
 
 Initial public release.
